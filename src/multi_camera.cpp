@@ -9,13 +9,22 @@ namespace avt_vimba_camera
     MultiCamera::MultiCamera(ros::NodeHandle& nh, ros::NodeHandle& nhp)
             : nh_(nh), nhp_(nhp), it_(nhp)
     {
+        nhp_.param("compressionMode", compressionMode_, std::string("jetraw"));
+        nhp_.param("jetraw_calibration_path_", jetraw_calibration_path_, std::string("/home/pointlaz/.config/dpcore/002kk.dat"));
+
+        if (compressionMode_ == "jetraw")
+        {
+            jetraw_tiff_init();
+            jetraw_tiff_set_license("");
+            dpcore_load_parameters(jetraw_calibration_path_.c_str());
+        }
+
         // Start Vimba & list all available cameras
         api_.start();
 
         // Set the params
 
         nhp_.param("camera_qty", camQty_,1);
-        nhp_.param("compress_jpeg_vimba", compressJPG_,true);
         std::string topicName = "image_raw_";
         nhp_.param("compress_jpeg_quality", qualityJPG_,90);
         nhp_.param("calculate_color_intensity", calculateColorIntensity_,true);
@@ -102,7 +111,7 @@ namespace avt_vimba_camera
 
                 img.header.stamp = ci.header.stamp;
 
-                if (compressJPG_ || calculateColorIntensity_)
+                if (compressionMode_ == "jpeg" || calculateColorIntensity_)
                 {
                     cv_bridge::CvImagePtr cv_ptr;
 
@@ -123,7 +132,7 @@ namespace avt_vimba_camera
                         //colorPub_[camId].publish(colorIntensityMsg);
                     }
 
-                    if (compressJPG_)
+                    if (compressionMode_ == "jpeg")
                     {
                         // Compress the image using OpenCV
                         std::vector<int> compression_params;

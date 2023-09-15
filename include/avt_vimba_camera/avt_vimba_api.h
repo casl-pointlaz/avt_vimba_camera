@@ -41,6 +41,10 @@
 #include <sensor_msgs/image_encodings.h>
 #include <sensor_msgs/fill_image.h>
 
+#include "dpcore/dpcore.h"
+#include "jetraw/jetraw.h"
+#include "jetraw_tiff/jetraw_tiff.h"
+
 #include <string>
 #include <map>
 
@@ -65,7 +69,9 @@ public:
       ROS_INFO_STREAM("[Vimba System]: AVT Vimba System initialized successfully");
       listAvailableCameras();
     }
-    else
+    else#include "dpcore/dpcore.h"
+#include "jetraw/jetraw.h"
+#include "jetraw_tiff/jetraw_tiff.h"
     {
       ROS_ERROR_STREAM("[Vimba System]: Could not start Vimba system: " << errorCodeToMessage(err));
     }
@@ -227,16 +233,42 @@ public:
 
 
     VmbUchar_t* buffer_ptr;
+//    VmbUint16_t* buffer_ptr;
     std::vector<VmbUchar_t> TransformedData;
-    VmbErrorType err = TransformImage( vimba_frame_ptr, TransformedData, "RGB24" );
-    buffer_ptr =reinterpret_cast<VmbUchar_t*>(TransformedData.data());
+//    VmbErrorType err = TransformImage( vimba_frame_ptr, TransformedData, "RGB24" );
+//    buffer_ptr =reinterpret_cast<VmbUchar_t*>(TransformedData.data());
+    VmbErrorType err = vimba_frame_ptr->GetImage(buffer_ptr);\
+    VmbUint16_t* buffer_ptr_16 = reinterpret_cast<VmbUint16_t*>(buffer_ptr);
+      int32_t dstLen = (width * height) / 2;
+      std::unique_ptr<char[]> dstBuffer(new char[dstLen]);
 
-    bool res = false;
-    if (VmbErrorSuccess == err)
-    {
-        encoding = sensor_msgs::image_encodings::RGB8;
-        VmbUint32_t step = TransformedData.size() / height;
-        res = sensor_msgs::fillImage(image, encoding, height, width, step, buffer_ptr);
+
+      dp_status encoded = jetraw_encode(
+              buffer_ptr_16,
+              width, height,
+              dstBuffer.get(),
+              &dstLen
+      );
+
+      bool res = false;
+
+
+      if (encoded != dp_success) {
+          encoding = "Jetraw compressed image";
+          res = sensor_msgs::fillImage(image, encoding, 1, dstLen, dstLen, buffer_ptr_16);
+      }
+
+
+
+//    if (VmbErrorSuccess == err)
+//    {
+//        encoding = sensor_msgs::image_encodings::RGB8;
+//        VmbUint32_t step = TransformedData.size() / height;
+//        res = sensor_msgs::fillImage(image, encoding, height, width, step, buffer_ptr_16);
+//    }
+    if (encoded != dp_success) {
+       encoding = "Jetraw compressed image";
+       res = sensor_msgs::fillImage(image, encoding, 1, dstLen, dstLen, buffer_ptr_16);
     }
     else
     {
