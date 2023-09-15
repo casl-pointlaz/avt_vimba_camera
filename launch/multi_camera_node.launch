@@ -112,7 +112,7 @@
   <arg name="compression_jpeg_restart_interval"     default="0"/>
   <arg name="compression_png_level"                 default="9"/>
 
-  <arg name="jetraw_calibration_path">              default="/home/pointlaz/.config/dpcore"/>
+  <arg name="jetraw_calibration_path">              default="/home/pointlaz/.config/dpcore/002kk.dat"/>
 
   <!-- Color Intensity parameters -->
   <arg name="calculate_color_intensity"             default="false"/>
