@@ -118,6 +118,18 @@ It may be useful to create a desktop shortcut to Vimba Viewer:
 ln -sf "Vimba_5_0/Tools/Viewer/Bin/x86_64bit/VimbaViewer" "$HOME/Desktop"
 ```
 
+### Jetraw
+
+Download jetraw package from https://github.com/Jetraw/Jetraw/
+
+Header files should already be included in this repo. 
+
+Put all lib files in 
+./lib/jetraw/libxxx.so
+
+Default license in /home/pointlaz/.config/jetraw/license.txt
+Default calib file in /home/pointlaz/.config/dpcore/002kk.dat
+
 ### ROS Driver
 
 Once you've successfully connected to your camera using Vimba Viewer, you can continue with the ROS driver install:
