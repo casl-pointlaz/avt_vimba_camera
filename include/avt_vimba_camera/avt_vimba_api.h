@@ -146,7 +146,7 @@ public:
       return "Undefined access";
   }
 
-  bool frameToImage(const FramePtr vimba_frame_ptr, sensor_msgs::Image& image)
+  bool frameToImage(const FramePtr vimba_frame_ptr, sensor_msgs::Image& image, std::string compression_mode)
   {
     VmbPixelFormatType pixel_format;
     VmbUint32_t width, height, nSize;
@@ -229,51 +229,56 @@ public:
     if (encoding == "")
       return false;
 
+    bool res = false;
 
-    VmbUchar_t* buffer_ptr;
-//    VmbUint16_t* buffer_ptr;
-    std::vector<VmbUchar_t> TransformedData;
-//    VmbErrorType err = TransformImage( vimba_frame_ptr, TransformedData, "RGB24" );
-//    buffer_ptr =reinterpret_cast<VmbUchar_t*>(TransformedData.data());
-    VmbErrorType err = vimba_frame_ptr->GetImage(buffer_ptr);\
-    VmbUint16_t* buffer_ptr_16 = reinterpret_cast<VmbUint16_t*>(buffer_ptr);
-      int32_t dstLen = (width * height) / 2;
-      std::unique_ptr<char[]> dstBuffer(new char[dstLen]);
-
-
-      dp_status encoded = jetraw_encode(
-              buffer_ptr_16,
-              width, height,
-              dstBuffer.get(),
-              &dstLen
-      );
-
-      bool res = false;
-
-
-      if (encoded != dp_success) {
-          encoding = "Jetraw compressed image";
-          res = sensor_msgs::fillImage(image, encoding, 1, dstLen, dstLen, buffer_ptr_16);
-      }
-
-
-
-//    if (VmbErrorSuccess == err)
-//    {
-//        encoding = sensor_msgs::image_encodings::RGB8;
-//        VmbUint32_t step = TransformedData.size() / height;
-//        res = sensor_msgs::fillImage(image, encoding, height, width, step, buffer_ptr_16);
-//    }
-    if (encoded != dp_success) {
-       encoding = "Jetraw compressed image";
-       res = sensor_msgs::fillImage(image, encoding, 1, dstLen, dstLen, buffer_ptr_16);
-    }
-    else
+    if (compression_mode == "jpeg" or compression_mode=="none")
     {
-      ROS_ERROR_STREAM("[" << ros::this_node::getName() << "]: Could not GetImage. "
-                           << "\n Error: " << errorCodeToMessage(err));
+        VmbUchar_t* buffer_ptr;
+        std::vector<VmbUchar_t> TransformedData;
+        VmbErrorType err = TransformImage( vimba_frame_ptr, TransformedData, "RGB24" );
+        buffer_ptr =reinterpret_cast<VmbUchar_t*>(TransformedData.data());
+
+        if (VmbErrorSuccess == err)
+        {
+            encoding = sensor_msgs::image_encodings::RGB8;
+            VmbUint32_t step = TransformedData.size() / height;
+            res = sensor_msgs::fillImage(image, encoding, height, width, step, buffer_ptr);
+        }
+        else
+        {
+            ROS_ERROR_STREAM("[" << ros::this_node::getName() << "]: Could not GetImage. "
+                                 << "\n Error: " << errorCodeToMessage(err));
+        }
     }
+    else if (compression_mode == "jetraw")
+    {
+        VmbUchar_t* buffer_ptr;
+        VmbErrorType err = vimba_frame_ptr->GetImage(buffer_ptr);\
+        VmbUint16_t* buffer_ptr_16 = reinterpret_cast<VmbUint16_t*>(buffer_ptr);
+        int32_t dstLen = (width * height) / 2;
+        std::unique_ptr<char[]> dstBuffer(new char[dstLen]);
+
+
+        dp_status encoded = jetraw_encode(
+                buffer_ptr_16,
+                width, height,
+                dstBuffer.get(),
+                &dstLen
+        );
+
+        if (encoded != dp_success) {
+            encoding = "Jetraw compressed image";
+            res = sensor_msgs::fillImage(image, encoding, 1, dstLen, dstLen, buffer_ptr_16);
+        }
+        else
+        {
+            ROS_ERROR_STREAM("[" << ros::this_node::getName() << "]: Could not GetImage. "
+                                 << "\n Error: " << errorCodeToMessage(err));
+        }
+    }
+
     return res;
+
   }
 
   VimbaSystem& vs;      // Modified by pointlaz. vs is now public
