@@ -78,7 +78,7 @@ void MonoCamera::frameCallback(const FramePtr& vimba_frame_ptr)
   if (pub_.getNumSubscribers() > 0)
   {
     sensor_msgs::Image img;
-    if (api_.frameToImage(vimba_frame_ptr, img))
+    if (api_.frameToImage(vimba_frame_ptr, img, "none"))
     {
       sensor_msgs::CameraInfo ci = info_man_->getCameraInfo();
       // Note: getCameraInfo() doesn't fill in header frame_id or stamp
