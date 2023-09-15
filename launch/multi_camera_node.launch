@@ -102,7 +102,7 @@
   <arg name="line_selector"             default="Line0"/>
   <arg name="line_mode"                 default="Input"/>
   <!-- Compression parameters -->       <!-- See parameters description at http://wiki.ros.org/compressed_image_transport -->
-  <arg name="compression_jpeg_vimba"                   default="true"/>
+  <arg name="compression_mode           default="None"/>  <!-- none,jpeg or jetraw -->
   <arg name="compression_jpeg_imageTransport"          default="false"/>
 
   <arg name="compression_format"                    default="jpeg"/>
@@ -111,6 +111,8 @@
   <arg name="compression_jpeg_optimize"             default="false"/>
   <arg name="compression_jpeg_restart_interval"     default="0"/>
   <arg name="compression_png_level"                 default="9"/>
+
+  <arg name="jetraw_calibration_path">              default="/home/pointlaz/.config/dpcore"/>
 
   <!-- Color Intensity parameters -->
   <arg name="calculate_color_intensity"             default="false"/>
@@ -220,7 +222,8 @@
     <param name="color_intensity_RGB"                             value="$(arg color_intensity_RGB)"/>
 
     <param name="compress_jpeg_quality"                             value="$(arg compression_jpeg_quality)"/>
-    <param name="compress_jpeg_vimba"                             value="$(arg compression_jpeg_vimba)"/>
+    <param name="compression_mode">                                 value="$(arg compression_mode)"/>
+    <param name="jetraw_calibration_path">                          value="$(arg jetraw_calibration_path)"/>
 
     <!-- Camera 0 -->
     <param name="image_raw_0/compressed/format"                     value="$(arg compression_format)"/>
@@ -275,7 +278,7 @@
   </node>
 
   <!-- Prevent to compress data with image transport -->
-  <group if="$(eval (compression_jpeg_vimba) or (not (compression_jpeg_imageTransport)))">
+  <group if="$(eval (compression_mode == 'jpeg') or (compression_mode == 'jetraw') or (not (compression_jpeg_imageTransport)))">
     <!-- Prevent image_raw_transport from exporting to jpeg using imageTransport-->
     <rosparam ns="/multi_camera/image_raw_0" param="disable_pub_plugins" >
       - 'image_transport/compressed'
