@@ -18,6 +18,10 @@
 #include <cv_bridge/cv_bridge.h>
 #include <opencv2/opencv.hpp>
 
+#include "dpcore/dpcore.h"
+#include "jetraw/jetraw.h"
+#include "jetraw_tiff/jetraw_tiff.h"
+
 #include <string>
 
 namespace avt_vimba_camera
@@ -50,8 +54,9 @@ namespace avt_vimba_camera
         int action_group_mask_;
 
         //Compressing
-        bool compressJPG_;
+        std::string compressionMode_;
         int qualityJPG_;
+        std::string jetraw_calibration_path_;
 
         //Calculating color intensity
         bool calculateColorIntensity_;
