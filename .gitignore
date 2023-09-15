@@ -20,6 +20,10 @@ CMakeFiles/
 src/*/Makefile
 src/*/cmake_install.cmake
 src/*/CMakeFiles/
+cmake-build-debug/
+
+# Clion files
+.idea
 
 # Eclipse temporary files
 .cproject
