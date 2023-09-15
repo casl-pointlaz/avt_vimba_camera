@@ -58,6 +58,11 @@ function(add_dependencies_and_linkings arg)
   if("${ARCH}" STREQUAL x86_64)
     target_link_libraries(${arg}
       ${catkin_LIBRARIES}
+      ${CMAKE_CURRENT_SOURCE_DIR}/lib/jetraw/libcrypto.so.1.1
+      ${CMAKE_CURRENT_SOURCE_DIR}/lib/jetraw/libdpcore.so
+      ${CMAKE_CURRENT_SOURCE_DIR}/lib/jetraw/libjetraw.so
+      ${CMAKE_CURRENT_SOURCE_DIR}/lib/jetraw/libjetraw_tiff.so
+      ${CMAKE_CURRENT_SOURCE_DIR}/lib/jetraw/libssl.so.1.1
       ${CMAKE_CURRENT_SOURCE_DIR}/lib/64bit/libVimbaC.so
       ${CMAKE_CURRENT_SOURCE_DIR}/lib/64bit/libVimbaCPP.so
       ${CMAKE_CURRENT_SOURCE_DIR}/lib/64bit/libVimbaImageTransform.so
@@ -65,12 +70,22 @@ function(add_dependencies_and_linkings arg)
   elseif("${ARCH}" STREQUAL armv7)
     target_link_libraries(${arg}
       ${catkin_LIBRARIES}
+      ${CMAKE_CURRENT_SOURCE_DIR}/lib/jetraw/libcrypto.so.1.1
+      ${CMAKE_CURRENT_SOURCE_DIR}/lib/jetraw/libdpcore.so
+      ${CMAKE_CURRENT_SOURCE_DIR}/lib/jetraw/libjetraw.so
+      ${CMAKE_CURRENT_SOURCE_DIR}/lib/jetraw/libjetraw_tiff.so
+      ${CMAKE_CURRENT_SOURCE_DIR}/lib/jetraw/libssl.so.1.1
       ${CMAKE_CURRENT_SOURCE_DIR}/lib/arm_32bit/libVimbaC.so
       ${CMAKE_CURRENT_SOURCE_DIR}/lib/arm_32bit/libVimbaCPP.so
     )
   elseif("${ARCH}" STREQUAL armv8)
     target_link_libraries(${arg}
       ${catkin_LIBRARIES}
+      ${CMAKE_CURRENT_SOURCE_DIR}/lib/jetraw/libcrypto.so.1.1
+      ${CMAKE_CURRENT_SOURCE_DIR}/lib/jetraw/libdpcore.so
+      ${CMAKE_CURRENT_SOURCE_DIR}/lib/jetraw/libjetraw.so
+      ${CMAKE_CURRENT_SOURCE_DIR}/lib/jetraw/libjetraw_tiff.so
+      ${CMAKE_CURRENT_SOURCE_DIR}/lib/jetraw/libssl.so.1.1
       ${CMAKE_CURRENT_SOURCE_DIR}/lib/arm_64bit/libVimbaC.so
       ${CMAKE_CURRENT_SOURCE_DIR}/lib/arm_64bit/libVimbaCPP.so
     )
