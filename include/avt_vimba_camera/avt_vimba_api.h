@@ -69,9 +69,7 @@ public:
       ROS_INFO_STREAM("[Vimba System]: AVT Vimba System initialized successfully");
       listAvailableCameras();
     }
-    else#include "dpcore/dpcore.h"
-#include "jetraw/jetraw.h"
-#include "jetraw_tiff/jetraw_tiff.h"
+    else
     {
       ROS_ERROR_STREAM("[Vimba System]: Could not start Vimba system: " << errorCodeToMessage(err));
     }
