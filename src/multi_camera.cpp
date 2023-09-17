@@ -93,7 +93,7 @@ namespace avt_vimba_camera
             sensor_msgs::Image img;
             sensor_msgs::CompressedImage compressed;
 
-            if (api_.frameToImage(vimba_frame_ptr, img))
+            if (api_.frameToImage(vimba_frame_ptr, img, compressionMode_))
             {
                 sensor_msgs::CameraInfo ci = info_man_[camId]->getCameraInfo();
                 // Note: getCameraInfo() doesn't fill in header frame_id or stamp
