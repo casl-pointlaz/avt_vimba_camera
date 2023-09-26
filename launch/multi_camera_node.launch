@@ -102,8 +102,8 @@
   <arg name="line_selector"             default="Line0"/>
   <arg name="line_mode"                 default="Input"/>
   <!-- Compression parameters -->       <!-- See parameters description at http://wiki.ros.org/compressed_image_transport -->
-  <arg name="compression_mode           default="jetraw"/>  <!-- none,jpeg or jetraw -->
-  <arg name="compression_jpeg_imageTransport          default="false"/>
+  <arg name="compression_mode"           default="jetraw"/>  <!-- none,jpeg or jetraw -->
+  <arg name="compression_jpeg_imageTransport"          default="false"/>
 
   <arg name="compression_format"                    default="jpeg"/>
   <arg name="compression_jpeg_quality"              default="90"/>
