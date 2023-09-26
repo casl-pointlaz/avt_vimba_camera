@@ -103,7 +103,7 @@
   <arg name="line_mode"                 default="Input"/>
   <!-- Compression parameters -->       <!-- See parameters description at http://wiki.ros.org/compressed_image_transport -->
   <arg name="compression_mode           default="jetraw"/>  <!-- none,jpeg or jetraw -->
-  <arg name="compression_jpeg_imageTransport"          default="false"/>
+  <arg name="compression_jpeg_imageTransport          default="false"/>
 
   <arg name="compression_format"                    default="jpeg"/>
   <arg name="compression_jpeg_quality"              default="90"/>
@@ -222,8 +222,8 @@
     <param name="color_intensity_RGB"                             value="$(arg color_intensity_RGB)"/>
 
     <param name="compress_jpeg_quality"                             value="$(arg compression_jpeg_quality)"/>
-    <param name="compression_mode">                                 value="$(arg compression_mode)"/>
-    <param name="jetraw_calibration_path">                          value="$(arg jetraw_calibration_path)"/>
+    <param name="compression_mode"                                  value="$(arg compression_mode)"/>
+    <param name="jetraw_calibration_path"                           value="$(arg jetraw_calibration_path)"/>
 
     <!-- Camera 0 -->
     <param name="image_raw_0/compressed/format"                     value="$(arg compression_format)"/>
