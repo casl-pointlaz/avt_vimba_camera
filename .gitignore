@@ -2,7 +2,6 @@
 src/VimbaCPP/
 
 # Build objects
-lib/
 bin/
 build/
 docs/
