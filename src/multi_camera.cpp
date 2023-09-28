@@ -43,7 +43,7 @@ namespace avt_vimba_camera
 
         for (int i = 0 ; i < camQty_; i++)
         {
-            pub_[i] = it_.advertiseCamera(topicName+std::to_string(i), 1);
+            pub_[i] = nh_.advertise<Image16>(topicName+std::to_string(i), 1);
             if (calculateColorIntensity_)
             {
                 ROS_INFO("-------------Color Intensity");
@@ -140,16 +140,16 @@ namespace avt_vimba_camera
                         compression_params.push_back(qualityJPG_);  // Set the desired image quality (0-100)
                         cv::imencode(".jpg", cv_ptr->image, img.data, compression_params);
                         img.encoding = "jpg";
-                        pub_[camId].publish(img, ci);
+                        pub_[camId].publish(img);
                     }
                     else
                     {
-                        pub_[camId].publish(img, ci);
+                        pub_[camId].publish(img);
                     }
                 }
                 else
                 {
-                    pub_[camId].publish(img, ci);
+                    pub_[camId].publish(img);
                 }
             }
             else

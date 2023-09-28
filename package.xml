@@ -19,6 +19,7 @@
   <depend>dynamic_reconfigure</depend>
   <depend>image_transport</depend>
   <depend>message_filters</depend>
+  <depend>message_generation</depend>
   <depend>roscpp</depend>
   <depend>sensor_msgs</depend>
   <depend>std_msgs</depend>
@@ -26,6 +27,7 @@
 
   <exec_depend>image_proc</exec_depend>
   <exec_depend>stereo_image_proc</exec_depend>
+  <exec_depend>message_runtime</exec_depend>
 
   <export>
     <nodelet plugin="${prefix}/plugins.xml" />

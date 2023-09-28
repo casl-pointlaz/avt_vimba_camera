@@ -8,10 +8,22 @@ find_package(catkin REQUIRED COMPONENTS
   cv_bridge
   image_transport
   message_filters
+  message_generation
   roscpp
   sensor_msgs
   std_msgs
   nodelet
+)
+
+add_message_files(
+      FILES
+      Image16.msg
+)
+
+generate_messages(
+        DEPENDENCIES
+        std_msgs
+        sensor_msgs
 )
 
 #Get architecture
@@ -26,7 +38,7 @@ generate_dynamic_reconfigure_options(
 
 catkin_package(
   INCLUDE_DIRS include
-  CATKIN_DEPENDS camera_info_manager diagnostic_updater dynamic_reconfigure image_transport roscpp sensor_msgs std_msgs
+  CATKIN_DEPENDS camera_info_manager diagnostic_updater dynamic_reconfigure image_transport message_runtime roscpp sensor_msgs std_msgs
 )
 
 ###########
@@ -116,6 +128,8 @@ add_executable(multi_camera_node
         src/avt_vimba_camera.cpp
         src/frame_observer.cpp
         )
+add_dependencies(multi_camera_node ${PROJECT_NAME}_generate_messages)
+
 add_dependencies_and_linkings(multi_camera_node)
 
 # Nodelets

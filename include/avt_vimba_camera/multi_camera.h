@@ -21,6 +21,7 @@
 #include "dpcore/dpcore.h"
 #include "jetraw/jetraw.h"
 #include "jetraw_tiff/jetraw_tiff.h"
+#include <avt_vimba_camera/Image16.h>
 
 #include <string>
 
@@ -66,7 +67,7 @@ namespace avt_vimba_camera
 
 
         image_transport::ImageTransport it_;
-        std::vector<image_transport::CameraPublisher> pub_;
+        std::vector<ros::Publisher> pub_;
         std::vector<ros::Publisher> colorPub_;
 
         std::vector<std::shared_ptr<camera_info_manager::CameraInfoManager>> info_man_;
