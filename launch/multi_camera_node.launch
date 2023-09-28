@@ -102,7 +102,7 @@
   <arg name="line_selector"             default="Line0"/>
   <arg name="line_mode"                 default="Input"/>
   <!-- Compression parameters -->       <!-- See parameters description at http://wiki.ros.org/compressed_image_transport -->
-  <arg name="compression_mode"           default="jetraw"/>  <!-- none,jpeg or jetraw -->
+  <arg name="compression_mode"          default="jetraw"/>  <!-- none,jpeg or jetraw -->
   <arg name="compression_jpeg_imageTransport"          default="false"/>
 
   <arg name="compression_format"                    default="jpeg"/>
@@ -112,7 +112,7 @@
   <arg name="compression_jpeg_restart_interval"     default="0"/>
   <arg name="compression_png_level"                 default="9"/>
 
-  <arg name="jetraw_calibration_path">              default="/home/pointlaz/.config/dpcore/002kk.dat"/>
+  <arg name="jetraw_calibration_path"               default="/home/pointlaz/.config/dpcore/002kk.dat"/>
 
   <!-- Color Intensity parameters -->
   <arg name="calculate_color_intensity"             default="false"/>
@@ -217,9 +217,9 @@
     <param name="line_mode"                 value="$(arg line_mode)"/>
 
     <!-- Color Intensity parameters -->
-    <param name="calculate_color_intensity"                       value="$(arg calculate_color_intensity)"/>
-    <param name="color_intensity_pixel_steps"                     value="$(arg color_intensity_pixel_steps)"/>
-    <param name="color_intensity_RGB"                             value="$(arg color_intensity_RGB)"/>
+    <param name="calculate_color_intensity"                         value="$(arg calculate_color_intensity)"/>
+    <param name="color_intensity_pixel_steps"                       value="$(arg color_intensity_pixel_steps)"/>
+    <param name="color_intensity_RGB"                               value="$(arg color_intensity_RGB)"/>
 
     <param name="compress_jpeg_quality"                             value="$(arg compression_jpeg_quality)"/>
     <param name="compression_mode"                                  value="$(arg compression_mode)"/>
