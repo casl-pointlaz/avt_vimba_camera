@@ -37,4 +37,8 @@ cmake-build-debug/
 # cameras_ids
 config/cameras_ids.yaml
 
+.catkin_tools
+devel
+logs
+
 
