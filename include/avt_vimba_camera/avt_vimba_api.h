@@ -49,6 +49,8 @@
 #include <cv_bridge/cv_bridge.h>
 #include <thread>
 #include <opencv2/opencv.hpp>
+#include "BS_thread_pool.hpp"
+#include <avt_vimba_camera/jpegTurbo.h>
 
 using AVT::VmbAPI::CameraPtr;
 using AVT::VmbAPI::FramePtr;
@@ -56,10 +58,21 @@ using AVT::VmbAPI::VimbaSystem;
 
 namespace avt_vimba_camera
 {
+enum class CompressionType
+{
+  Jpeg,
+  JpegTurbo,
+  Jetraw,
+  None
+};
+
 class AvtVimbaApi
 {
 public:
-  AvtVimbaApi() : vs(VimbaSystem::GetInstance())
+  AvtVimbaApi(
+              const std::shared_ptr<BS::thread_pool<>> &threadPool = nullptr)
+      : vs(VimbaSystem::GetInstance())
+        ,threadPool_(threadPool)
   {
   }
 
@@ -77,13 +90,16 @@ public:
     bool pixel_intensity_echo_;
     std::vector<int> echoed_pixel_intensities_;
     bool pixel_intensity_ = false ;
-    bool compressJetraw_ = false;
-    bool compressJPG_ = false;
+    CompressionType compressionType_ = CompressionType::Jpeg;
     int qualityJPG_ = 90;
 
     //Debug image
     bool debugImage_ = false;
     bool compressInfo_ = false;
+
+    //pool
+    std::shared_ptr<BS::thread_pool<>> threadPool_;
+    std::vector<std::unique_ptr<TurboJpegHandler>> jpegTurboHandlers_;
 
   void start()
   {
@@ -97,6 +113,23 @@ public:
     {
       ROS_ERROR_STREAM("[Vimba System]: Could not start Vimba system: " << errorCodeToMessage(err));
     }
+  }
+
+  void setJpegTurboHandlers()
+  {
+    size_t poolSize =  threadPool_->get_thread_count();
+    if (poolSize < 1) poolSize = 1;
+    jpegTurboHandlers_.reserve(poolSize);
+    for (size_t i = 0; i < poolSize; ++i) {
+      jpegTurboHandlers_.push_back(std::make_unique<TurboJpegHandler>());
+    }
+  }
+
+  TurboJpegHandler* getJpegTurboHandler(size_t thread_index) {
+    if (thread_index >= jpegTurboHandlers_.size()) {
+      throw std::runtime_error("Thread index out of range");
+    }
+    return jpegTurboHandlers_[thread_index].get();
   }
 
   /** Translates Vimba error codes to readable error messages
@@ -170,7 +203,7 @@ public:
       return "Undefined access";
   }
 
-  bool frameToImage(const FramePtr vimba_frame_ptr, sensor_msgs::Image& image, sensor_msgs::Image& debugImage, std_msgs::UInt8 &pixel_intensity_msg, int camId)
+  bool frameToImage(const FramePtr vimba_frame_ptr, sensor_msgs::Image& image, sensor_msgs::Image& debugImage, std_msgs::UInt8 &pixel_intensity_msg, int camId, int poolIndex)
   {
       VmbPixelFormatType pixel_format;
       VmbUint32_t width, height, nSize;
@@ -259,7 +292,7 @@ public:
 
       ros::Time start_time = ros::Time::now();
 
-      if (compressJetraw_)
+      if (compressionType_ == CompressionType::Jetraw)
       {
           VmbUchar_t *buffer_ptr_in;
           err = vimba_frame_ptr->GetImage(buffer_ptr_in);
@@ -295,7 +328,7 @@ public:
             }
           }
       }
-      else if (compressJPG_)
+      else if (compressionType_ == CompressionType::Jpeg)
       {
 
           if (pixel_intensity_)
@@ -355,9 +388,54 @@ public:
           }
 
       }
+      else if (compressionType_ == CompressionType::JpegTurbo)
+      {
+
+        if (pixel_intensity_)
+        {
+          VmbUchar_t *buffer_ptr_in;
+          err = vimba_frame_ptr->GetImage(buffer_ptr_in);
+          if (VmbErrorSuccess != err)
+          {
+            ROS_ERROR_STREAM("[" << ros::this_node::getName() << "]: Could not GetImage. "
+                                 << "\n Error: " << errorCodeToMessage(err));
+          }
+          try
+          {
+            pixel_intensity_msg = calculatePixelIntensity(buffer_ptr_in, nSize, camId);
+          }
+          catch (std::exception &e)
+          {
+            ROS_ERROR("Frame callback intensity error because %s", e.what());
+          }
+
+        }
+
+        std::vector<VmbUchar_t> TransformedData;
+        try
+        {
+          err = TransformImage(vimba_frame_ptr, TransformedData, "RGB24");
+        }
+        catch (std::exception &e)
+        {
+          ROS_ERROR("Frame callback transformingImage error because %s", e.what());
+        }
+
+        encoding = sensor_msgs::image_encodings::RGB8;
+        res = compressJpegTurbo(getJpegTurboHandler(poolIndex),TransformedData,image,height,width,encoding,qualityJPG_);
+
+        //Compressing to JPG
+        if (debugImage_)
+        {
+          std::vector<VmbUchar_t> decompressedData;
+          res = decompressJpegTurbo(getJpegTurboHandler(poolIndex),image,decompressedData,sensor_msgs::image_encodings::BGR8);
+          VmbUint32_t step = decompressedData.size() / height;
+          res = sensor_msgs::fillImage(debugImage,  sensor_msgs::image_encodings::BGR8, image.height, image.width, step, decompressedData.data());
+        }
+      }
       else
       {
-          //Other Transform
+          //None
           if (pixel_intensity_)
           {
               VmbUchar_t *buffer_ptr_in;
@@ -399,6 +477,23 @@ public:
     return res;
   }
 
+  bool frameToImagePool(const FramePtr vimba_frame_ptr, sensor_msgs::Image& image, sensor_msgs::Image& debugImage, std_msgs::UInt8 &pixel_intensity_msg, int camId)
+  {
+    if (threadPool_)
+    {
+      std::future<bool>future = threadPool_->submit_task([this,&vimba_frame_ptr,&image,&debugImage,&pixel_intensity_msg, camId]
+                                                          {
+                                                            return this->frameToImage(vimba_frame_ptr,image,debugImage,pixel_intensity_msg,camId, *BS::this_thread::get_index());
+                                                          }) ;
+      return future.get();
+    }
+    else
+    {
+      return frameToImage(vimba_frame_ptr,image,debugImage,pixel_intensity_msg,camId,0);
+    }
+  }
+
+
     /**
    * @brief Set Pixel Intensity Calculation Parameters
    *
@@ -425,10 +520,6 @@ public:
         pixel_intensity_echo_ = pixel_intensity_echo;
         echoed_pixel_intensities_ = echoed_pixel_intensities;
         pixel_intensity_ = true ;
-    }
-
-    void activateJetraw(){
-        compressJetraw_ = true;
     }
 
     void activateDebugImage()

@@ -7,7 +7,7 @@
   <!-- Change these parameters using the quantity and ID of your cameras -->
 
   <!-- Update compression_type parameter -->
-  <arg name="compression_type"               default="jpeg"/>
+  <arg name="compression_type"               default="jpegTurbo"/>
 
   <!-- Cameras IDs config file -->
   <arg name="cameras_ids_config_file"   default="$(find avt_vimba_camera)/config/cameras_ids.yaml" />
@@ -91,14 +91,14 @@
   <arg name="decimation_x"              default="1"/>
   <arg name="decimation_y"              default="1"/>
   <!-- ROI -->
-  <arg name="width"                     default="2064"/>
-  <arg name="height"                    default="1544"/>
+  <arg name="width"                     default="2464"/>
+  <arg name="height"                    default="2064"/>
   <arg name="offset_x"                  default="0"/>
   <arg name="offset_y"                  default="0"/>
   <!-- Pixel Format -->
   <arg name="pixel_format"              default="BayerRG8"/>
   <!-- Bandwidth -->
-  <arg name="stream_bytes_per_second"   default="50000000"/>
+  <arg name="stream_bytes_per_second"   default="55000000"/>
   <!-- PTP Synchronization -->
   <arg name="ptp_mode"                  default="Off"/>
   <!-- USB GPIO -->

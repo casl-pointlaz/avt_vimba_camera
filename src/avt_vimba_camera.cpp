@@ -69,7 +69,8 @@ AvtVimbaCamera::AvtVimbaCamera() : AvtVimbaCamera(ros::this_node::getName().c_st
 }
 
 AvtVimbaCamera::AvtVimbaCamera(const std::string& name, const int camId, std::shared_ptr<AvtVimbaApi> api,
-                               std::shared_ptr<image_transport::CameraPublisher> pub)        // Modified by pointlax (camId added)
+                               std::shared_ptr<image_transport::CameraPublisher> pub
+                               )        // Modified by pointlax (camId added)
 {
   // Init global variables
   opened_ = false;     // camera connected to the api
@@ -288,11 +289,11 @@ CameraPtr AvtVimbaCamera::openCamera(const std::string& id_str, bool print_all_f
 
 void AvtVimbaCamera::frameCallback(const FramePtr vimba_frame_ptr)
 {
+
   std::unique_lock<std::mutex> lock(config_mutex_);
   camera_state_ = OK;
   // Call the callback implemented by other classes
-  std::thread currentThread = std::thread(&AvtVimbaCamera::compress,this, vimba_frame_ptr);     // Modified by pointlaz (camId parameter added)
-  currentThread.join();
+  compress(vimba_frame_ptr);
 }
 
 void AvtVimbaCamera::compress(const FramePtr& vimba_frame_ptr)
@@ -304,7 +305,7 @@ void AvtVimbaCamera::compress(const FramePtr& vimba_frame_ptr)
         sensor_msgs::Image debugImg;
         std_msgs::UInt8 pixelIntensityMsg;
 
-        if (api_->frameToImage(vimba_frame_ptr, img, debugImg, pixelIntensityMsg, camId_))
+        if (api_->frameToImagePool(vimba_frame_ptr, img, debugImg, pixelIntensityMsg, camId_))
         {
             sensor_msgs::CameraInfo ci;
             // Note: getCameraInfo() doesn't fill in header frame_id or stamp

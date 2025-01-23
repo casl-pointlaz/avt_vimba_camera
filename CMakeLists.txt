@@ -14,6 +14,12 @@ find_package(catkin REQUIRED COMPONENTS
   nodelet
 )
 
+set(CMAKE_PREFIX_PATH "/opt/libjpeg-turbo/lib64/cmake/libjpeg-turbo/")
+find_package(libjpeg-turbo REQUIRED)
+
+
+set(THREADPOOL_INCLUDE_DIR " ${CMAKE_CURRENT_SOURCE_DIR}/include/thread_pool/include")
+
 set(JETRAW_INCLUDE_DIR " ${CMAKE_CURRENT_SOURCE_DIR}/JetrawWithDPCore-22.02.16.1/include")
 
 set (JETRAW_LIBS
@@ -41,8 +47,10 @@ catkin_package(
 ###########
 ## Build ##
 ###########
+message(STATUS "=====================${libjpeg-turbo}")
 
-include_directories(
+        include_directories(
+  ${THREADPOOL_INCLUDE_DIR}
   ${catkin_INCLUDE_DIRS}
   ${JETRAW_INCLUDE_DIR}
   include
@@ -50,14 +58,14 @@ include_directories(
 
 # C++11 support
 include(CheckCXXCompilerFlag)
-CHECK_CXX_COMPILER_FLAG("-std=c++14" COMPILER_SUPPORTS_CXX11)
+CHECK_CXX_COMPILER_FLAG("-std=c++17" COMPILER_SUPPORTS_CXX11)
 CHECK_CXX_COMPILER_FLAG("-std=c++0x" COMPILER_SUPPORTS_CXX0X)
 if(COMPILER_SUPPORTS_CXX11)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
 elseif(COMPILER_SUPPORTS_CXX0X)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
 else()
-  message(STATUS "The compiler ${CMAKE_CXX_COMPILER} has no C++14 support. Please use a different C++ compiler.")
+  message(STATUS "The compiler ${CMAKE_CXX_COMPILER} has no C++17 support. Please use a different C++ compiler.")
 endif()
 
 function(add_dependencies_and_linkings arg)
@@ -69,6 +77,7 @@ function(add_dependencies_and_linkings arg)
     target_link_libraries(${arg}
       ${catkin_LIBRARIES}
       ${JETRAW_LIBS}
+      libjpeg-turbo::turbojpeg
       ${CMAKE_CURRENT_SOURCE_DIR}/lib/64bit/libVimbaC.so
       ${CMAKE_CURRENT_SOURCE_DIR}/lib/64bit/libVimbaCPP.so
       ${CMAKE_CURRENT_SOURCE_DIR}/lib/64bit/libVimbaImageTransform.so
@@ -110,6 +119,7 @@ add_executable(multi_camera_node
         src/avt_vimba_camera.cpp
         src/frame_observer.cpp
         src/jetraw.cpp
+        src/jpegTurbo.cpp
         )
 add_dependencies_and_linkings(multi_camera_node)
 

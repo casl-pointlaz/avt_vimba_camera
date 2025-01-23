@@ -68,6 +68,7 @@ enum CameraState
   OK
 };
 
+
 class AvtVimbaCamera
 {
 public:
@@ -76,7 +77,8 @@ public:
 
   AvtVimbaCamera();
   AvtVimbaCamera(const std::string& name, const int camId = 0, std::shared_ptr<AvtVimbaApi> api = nullptr,
-                 std::shared_ptr<image_transport::CameraPublisher> pub = nullptr);         // Modified by pointlaz. camId as parameter
+                 std::shared_ptr<image_transport::CameraPublisher> pub = nullptr
+                 );         // Modified by pointlaz. camId as parameter
 
  //Publishers
   std::shared_ptr<image_transport::CameraPublisher> pub_;
@@ -85,8 +87,7 @@ public:
 
 
   //Compressing
-  bool compressJPG_ = false;
-  bool compressJetraw_ = true;
+  CompressionType compressionType_ = CompressionType::Jpeg;
   int qualityJPG_ = 90;
   void setPixelIntensityPublisher(std::shared_ptr<ros::Publisher> pub) {if(pub) pixel_intensity_pub_ = pub;}
 
@@ -141,8 +142,6 @@ public:
 
     Config config_;
 private:
-
-
   std::shared_ptr<AvtVimbaApi> api_;
   // IFrame Observer
   SP_DECL(FrameObserver) frame_obs_ptr_;

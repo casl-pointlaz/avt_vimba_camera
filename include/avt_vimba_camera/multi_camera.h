@@ -25,6 +25,7 @@
 
 namespace avt_vimba_camera
 {
+
     class MultiCamera
     {
     public:
@@ -53,8 +54,7 @@ namespace avt_vimba_camera
         int action_group_mask_;
 
         //Compressing
-        bool compressJPG_ = true;
-        bool compressJetraw_ = false;
+        CompressionType compressionType_;
         int qualityJPG_;
         bool allReady_ = false;
         bool allConfigure_ = false;
