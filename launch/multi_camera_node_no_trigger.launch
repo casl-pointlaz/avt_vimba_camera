@@ -71,7 +71,7 @@
   <arg name="exposure_auto_rate"        default="10000"/>
   <arg name="exposure_auto_target"      default="10000"/>
   <!-- Gain -->
-  <arg name="gain"                      default="0"/>
+  <arg name="gain"                      default="12"/>
   <arg name="gain_auto"                 default="Off"/>
   <arg name="gain_auto_adjust_tol"      default="5"/>
   <arg name="gain_auto_max"             default="32"/>
@@ -91,14 +91,14 @@
   <arg name="decimation_x"              default="1"/>
   <arg name="decimation_y"              default="1"/>
   <!-- ROI -->
-  <arg name="width"                     default="2064"/>
-  <arg name="height"                    default="1544"/>
+  <arg name="width"                     default="2464"/>
+  <arg name="height"                    default="2064"/>
   <arg name="offset_x"                  default="0"/>
   <arg name="offset_y"                  default="0"/>
   <!-- Pixel Format -->
   <arg name="pixel_format"              default="BayerRG8"/>
   <!-- Bandwidth -->
-  <arg name="stream_bytes_per_second"   default="50000000"/>
+  <arg name="stream_bytes_per_second"   default="55000000"/>
   <!-- PTP Synchronization -->
   <arg name="ptp_mode"                  default="Off"/>
   <!-- USB GPIO -->
