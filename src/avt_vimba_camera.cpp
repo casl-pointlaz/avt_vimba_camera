@@ -303,9 +303,17 @@ void AvtVimbaCamera::compress(const FramePtr& vimba_frame_ptr)
     {
         sensor_msgs::Image img;
         sensor_msgs::Image debugImg;
-        std_msgs::UInt8 pixelIntensityMsg;
 
-        if (api_->frameToImagePool(vimba_frame_ptr, img, debugImg, pixelIntensityMsg, camId_))
+        if (pixel_intensity_pub_)
+        {
+          std_msgs::UInt8 pixelIntensityMsg = api_->pixelIntensityFromFramePool(vimba_frame_ptr,camId_);
+          if (pixelIntensityMsg.data  !=0)
+          {
+            pixel_intensity_pub_->publish(pixelIntensityMsg);
+          }
+        }
+
+        if (api_->frameToImagePool(vimba_frame_ptr, img, debugImg))
         {
             sensor_msgs::CameraInfo ci;
             // Note: getCameraInfo() doesn't fill in header frame_id or stamp
@@ -314,10 +322,6 @@ void AvtVimbaCamera::compress(const FramePtr& vimba_frame_ptr)
             img.header.stamp = ci.header.stamp;
 
             pub_->publish(img, ci);
-            if (pixel_intensity_pub_)
-            {
-                pixel_intensity_pub_->publish(pixelIntensityMsg);
-            }
             if (debugPub_)
             {
                 debugPub_->publish(debugImg,ci);
