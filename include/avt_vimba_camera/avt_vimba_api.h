@@ -70,9 +70,11 @@ class AvtVimbaApi
 {
 public:
   AvtVimbaApi(
-              const std::shared_ptr<BS::thread_pool<>> &threadPool = nullptr)
+              const std::shared_ptr<BS::thread_pool<>> &threadPool = nullptr,
+      const std::shared_ptr<BS::thread_pool<>> &threadPoolPixel = nullptr)
       : vs(VimbaSystem::GetInstance())
         ,threadPool_(threadPool)
+         ,threadPoolPixel_(threadPoolPixel)
   {
   }
 
@@ -99,6 +101,7 @@ public:
 
     //pool
     std::shared_ptr<BS::thread_pool<>> threadPool_;
+    std::shared_ptr<BS::thread_pool<>> threadPoolPixel_;
     std::vector<std::unique_ptr<TurboJpegHandler>> jpegTurboHandlers_;
 
   void start()
@@ -234,9 +237,9 @@ public:
 
   std_msgs::UInt8 pixelIntensityFromFramePool(const FramePtr &vimba_frame_ptr, const int camId)
   {
-    if (threadPool_)
+    if (threadPoolPixel_)
     {
-      std::future<std_msgs::UInt8>future = threadPool_->submit_task([this,&vimba_frame_ptr,camId]
+      std::future<std_msgs::UInt8>future = threadPoolPixel_->submit_task([this,&vimba_frame_ptr,camId]
                                                           {
                                                             return this->pixelIntensityFromFrame(vimba_frame_ptr,camId);
                                                           }) ;
@@ -247,7 +250,6 @@ public:
       return pixelIntensityFromFrame(vimba_frame_ptr,camId);
     }
   }
-
 
   bool frameToImage(const FramePtr vimba_frame_ptr, sensor_msgs::Image& image, sensor_msgs::Image& debugImage, int poolIndex)
   {
