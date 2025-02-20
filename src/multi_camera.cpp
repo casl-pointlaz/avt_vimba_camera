@@ -14,8 +14,18 @@ namespace avt_vimba_camera
 
         // Set the params
         nhp_.param("camera_qty", camQty_, 1);
+        nhp_.param("calculate_pixel_intensity", calculate_pixel_intensity_,true);
         std::shared_ptr<BS::thread_pool<>>  pool = std::make_shared<BS::thread_pool<>>(camQty_ * 2);
-        api_ = std::make_shared<AvtVimbaApi>(pool);
+        if (calculate_pixel_intensity_)
+        {
+           std::shared_ptr<BS::thread_pool<>>  poolPixel = std::make_shared<BS::thread_pool<>>(2);
+           api_ = std::make_shared<AvtVimbaApi>(pool,poolPixel);
+        }
+        else
+        {
+           api_ = std::make_shared<AvtVimbaApi>(pool);
+        }
+
         api_->start();
 
         std::string compressionType;
@@ -44,8 +54,7 @@ namespace avt_vimba_camera
 
         std::string topicName = "image_raw_";
         nhp_.param("compress_jpeg_quality", qualityJPG_, 90);
-        // Get Pixel Intensity params
-        nhp_.param("calculate_pixel_intensity", calculate_pixel_intensity_,true);
+
 
 
         //Debug Image
