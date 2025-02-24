@@ -70,9 +70,11 @@ class AvtVimbaApi
 {
 public:
   AvtVimbaApi(
-              const std::shared_ptr<BS::thread_pool<>> &threadPool = nullptr)
+              const std::shared_ptr<BS::thread_pool<>> &threadPool = nullptr,
+      const std::shared_ptr<BS::thread_pool<>> &threadPoolPixel = nullptr)
       : vs(VimbaSystem::GetInstance())
         ,threadPool_(threadPool)
+         ,threadPoolPixel_(threadPoolPixel)
   {
   }
 
@@ -99,6 +101,7 @@ public:
 
     //pool
     std::shared_ptr<BS::thread_pool<>> threadPool_;
+    std::shared_ptr<BS::thread_pool<>> threadPoolPixel_;
     std::vector<std::unique_ptr<TurboJpegHandler>> jpegTurboHandlers_;
 
   void start()
@@ -203,7 +206,52 @@ public:
       return "Undefined access";
   }
 
-  bool frameToImage(const FramePtr vimba_frame_ptr, sensor_msgs::Image& image, sensor_msgs::Image& debugImage, std_msgs::UInt8 &pixel_intensity_msg, int camId, int poolIndex)
+  std_msgs::UInt8 pixelIntensityFromFrame(const FramePtr &vimbaFramePtr,const int camId)
+  {
+    VmbUchar_t *bufferPtrIn;
+    VmbErrorType err = vimbaFramePtr->GetImage(bufferPtrIn);
+    VmbUint32_t nSize;
+    vimbaFramePtr->GetImageSize(nSize);
+    std_msgs::UInt8 msg;
+    msg.data = 0;
+
+    if (VmbErrorSuccess != err)
+    {
+      ROS_ERROR_STREAM("[" << ros::this_node::getName() << "]: Could not GetImage. "
+                           << "\n Error: " << errorCodeToMessage(err));
+      return msg;
+    }
+    else
+    {
+      try
+      {
+        return calculatePixelIntensity(bufferPtrIn, nSize, camId);
+      }
+      catch (std::exception &e)
+      {
+        ROS_ERROR("Frame callback intensity error because %s", e.what());
+        return msg;
+      }
+    }
+  }
+
+  std_msgs::UInt8 pixelIntensityFromFramePool(const FramePtr &vimba_frame_ptr, const int camId)
+  {
+    if (threadPoolPixel_)
+    {
+      std::future<std_msgs::UInt8>future = threadPoolPixel_->submit_task([this,&vimba_frame_ptr,camId]
+                                                          {
+                                                            return this->pixelIntensityFromFrame(vimba_frame_ptr,camId);
+                                                          }) ;
+      return future.get();
+    }
+    else
+    {
+      return pixelIntensityFromFrame(vimba_frame_ptr,camId);
+    }
+  }
+
+  bool frameToImage(const FramePtr vimba_frame_ptr, sensor_msgs::Image& image, sensor_msgs::Image& debugImage, int poolIndex)
   {
       VmbPixelFormatType pixel_format;
       VmbUint32_t width, height, nSize;
@@ -301,17 +349,6 @@ public:
               ROS_ERROR_STREAM("[" << ros::this_node::getName() << "]: Could not GetImage. "
                                    << "\n Error: " << errorCodeToMessage(err));
           }
-          if (pixel_intensity_)
-          {
-              try
-              {
-                  pixel_intensity_msg = calculatePixelIntensity(buffer_ptr_in, nSize, camId);
-              }
-              catch (std::exception &e)
-              {
-                  ROS_ERROR("Frame callback intensity error because %s", e.what());
-              }
-          }
           int32_t dstLen;
           res = jetrawCompress::encodeMsg(buffer_ptr_in,height, width, image, dstLen);
           if (!res)
@@ -330,27 +367,6 @@ public:
       }
       else if (compressionType_ == CompressionType::Jpeg)
       {
-
-          if (pixel_intensity_)
-          {
-              VmbUchar_t *buffer_ptr_in;
-              err = vimba_frame_ptr->GetImage(buffer_ptr_in);
-              if (VmbErrorSuccess != err)
-              {
-                  ROS_ERROR_STREAM("[" << ros::this_node::getName() << "]: Could not GetImage. "
-                                       << "\n Error: " << errorCodeToMessage(err));
-              }
-              try
-              {
-                  pixel_intensity_msg = calculatePixelIntensity(buffer_ptr_in, nSize, camId);
-              }
-              catch (std::exception &e)
-              {
-                  ROS_ERROR("Frame callback intensity error because %s", e.what());
-              }
-
-          }
-
           std::vector<VmbUchar_t> TransformedData;
           try
           {
@@ -390,27 +406,6 @@ public:
       }
       else if (compressionType_ == CompressionType::JpegTurbo)
       {
-
-        if (pixel_intensity_)
-        {
-          VmbUchar_t *buffer_ptr_in;
-          err = vimba_frame_ptr->GetImage(buffer_ptr_in);
-          if (VmbErrorSuccess != err)
-          {
-            ROS_ERROR_STREAM("[" << ros::this_node::getName() << "]: Could not GetImage. "
-                                 << "\n Error: " << errorCodeToMessage(err));
-          }
-          try
-          {
-            pixel_intensity_msg = calculatePixelIntensity(buffer_ptr_in, nSize, camId);
-          }
-          catch (std::exception &e)
-          {
-            ROS_ERROR("Frame callback intensity error because %s", e.what());
-          }
-
-        }
-
         std::vector<VmbUchar_t> TransformedData;
         try
         {
@@ -435,26 +430,6 @@ public:
       }
       else
       {
-          //None
-          if (pixel_intensity_)
-          {
-              VmbUchar_t *buffer_ptr_in;
-              err = vimba_frame_ptr->GetImage(buffer_ptr_in);
-              if (VmbErrorSuccess != err)
-              {
-                  ROS_ERROR_STREAM("[" << ros::this_node::getName() << "]: Could not GetImage. "
-                                       << "\n Error: " << errorCodeToMessage(err));
-              }
-              try
-              {
-                  pixel_intensity_msg = calculatePixelIntensity(buffer_ptr_in, nSize, camId);
-              }
-              catch (std::exception &e)
-              {
-                  ROS_ERROR("Frame callback intensity error because %s", e.what());
-              }
-
-          }
           VmbUchar_t *buffer_ptr;
           err = vimba_frame_ptr->GetImage(buffer_ptr);
           res = sensor_msgs::fillImage(image,encoding,height,width,step,buffer_ptr);
@@ -477,19 +452,19 @@ public:
     return res;
   }
 
-  bool frameToImagePool(const FramePtr vimba_frame_ptr, sensor_msgs::Image& image, sensor_msgs::Image& debugImage, std_msgs::UInt8 &pixel_intensity_msg, int camId)
+  bool frameToImagePool(const FramePtr vimba_frame_ptr, sensor_msgs::Image& image, sensor_msgs::Image& debugImage)
   {
     if (threadPool_)
     {
-      std::future<bool>future = threadPool_->submit_task([this,&vimba_frame_ptr,&image,&debugImage,&pixel_intensity_msg, camId]
+      std::future<bool>future = threadPool_->submit_task([this,&vimba_frame_ptr,&image,&debugImage]
                                                           {
-                                                            return this->frameToImage(vimba_frame_ptr,image,debugImage,pixel_intensity_msg,camId, *BS::this_thread::get_index());
+                                                            return this->frameToImage(vimba_frame_ptr,image,debugImage, *BS::this_thread::get_index());
                                                           }) ;
       return future.get();
     }
     else
     {
-      return frameToImage(vimba_frame_ptr,image,debugImage,pixel_intensity_msg,camId,0);
+      return frameToImage(vimba_frame_ptr,image,debugImage,0);
     }
   }
 
