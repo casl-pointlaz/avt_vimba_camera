@@ -54,7 +54,7 @@
   <arg name="acquisition_mode"          default="Continuous"/>
   <arg name="acquisition_rate"          default="10"/>
   <!-- Trigger -->
-  <arg name="trigger_source"            default="Line0"/>
+  <arg name="trigger_source"            default="Line1"/>
   <arg name="trigger_mode"              default="On"/>
   <arg name="trigger_selector"          default="FrameStart"/>
   <arg name="trigger_activation"        default="RisingEdge"/>
@@ -71,7 +71,7 @@
   <arg name="exposure_auto_rate"        default="10000"/>
   <arg name="exposure_auto_target"      default="10000"/>
   <!-- Gain -->
-  <arg name="gain"                      default="12"/>
+  <arg name="gain"                      default="0"/>
   <arg name="gain_auto"                 default="Off"/>
   <arg name="gain_auto_adjust_tol"      default="5"/>
   <arg name="gain_auto_max"             default="32"/>
@@ -91,8 +91,8 @@
   <arg name="decimation_x"              default="1"/>
   <arg name="decimation_y"              default="1"/>
   <!-- ROI -->
-  <arg name="width"                     default="2464"/>
-  <arg name="height"                    default="2064"/>
+  <arg name="width"                     default="2064"/>
+  <arg name="height"                    default="1544"/>
   <arg name="offset_x"                  default="0"/>
   <arg name="offset_y"                  default="0"/>
   <!-- Pixel Format -->
