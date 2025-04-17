@@ -2,7 +2,6 @@
 
 #include <avt_vimba_camera/multi_camera.h>
 #include "BS_thread_pool.hpp"
-#include "railcam/imgproc/laserdetection.h"
 
 
 #define DEBUG_PRINTS 1
@@ -16,7 +15,7 @@ MultiCamera::MultiCamera(ros::NodeHandle& nh, ros::NodeHandle& nhp)
    railcam::imgproc::LaserDetectionOptions ldo{};
    // Set the params
    nhp_.param("camera_qty", camQty_, 1);
-   std::shared_ptr<BS::thread_pool<>>  pool = std::make_shared<BS::thread_pool<>>(camQty_ * 2);
+   std::shared_ptr<BS::thread_pool<>>  pool = std::make_shared<BS::thread_pool<>>( 8);
    api_ = std::make_shared<AvtVimbaApi>(pool);
    api_->start();
 
@@ -140,6 +139,46 @@ MultiCamera::MultiCamera(ros::NodeHandle& nh, ros::NodeHandle& nhp)
          cam->setDebugPublisher(debugPub_[i]);
       }
       cam_[i] = cam;
+   }
+
+   //South West
+
+   nhp_.param("southwest_raw", publishSouthWestRaw_, true);
+   nhp_.param("southwest_coordinate", publishSouthWestCoordinate_, true);
+   if (publishSouthWestCoordinate_ || publishSouthWestRaw_)
+   {
+      nhp_.param("southwest_qty", southWestQty_, 1);
+      std::string topicNameSouthWestRaw = "southwest_raw_";
+      std::string topicNameSouthWestCoordinate = "southwest_coordinate_";
+
+      southWestCoordinatePub_.resize(southWestQty_);
+      southWestRawPub_.resize(southWestQty_);
+      southWestGuid_.resize(southWestQty_);
+      southWestFameId_.resize(southWestQty_);
+      southWestCam_.resize(southWestQty_);
+
+      for(int i = 0; i < southWestQty_; i++)
+      {
+         nhp_.param("southwest_guid_" + std::to_string(i), southWestGuid_[i], std::string(""));
+         nhp_.param("south_west_frame_id_" + std::to_string(i), southWestFameId_[i], std::string(""));
+         ROS_INFO("-------------New South West Cam");
+         std::shared_ptr<AvtVimbaCamera>
+            southWestCam = std::make_shared<AvtVimbaCamera>(southWestFameId_[i], i, api_, nullptr);
+         if (publishSouthWestRaw_)
+         {
+            southWestRawPub_[i].reset(new image_transport::CameraPublisher);
+            *southWestRawPub_[i] = it_.advertiseCamera(topicNameSouthWestRaw + std::to_string(i), 1);
+            southWestCam->setSouthwestRawPublisher(southWestRawPub_[i]);
+         }
+
+         if (publishSouthWestCoordinate_)
+         {
+            southWestCoordinatePub_[i] = std::make_shared<ros::Publisher>();
+            *southWestCoordinatePub_[i] = nh_.advertise<std_msgs::Float32MultiArray>(topicNameSouthWestCoordinate + std::to_string(i), 1);
+            southWestCam->setSouthwestRawPublisher(southWestRawPub_[i]);
+         }
+         southWestCam_[i] = southWestCam;
+      }
    }
 
    ROS_INFO("-------------Reconfig");

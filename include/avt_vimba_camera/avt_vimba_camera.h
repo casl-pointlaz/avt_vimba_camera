@@ -83,7 +83,9 @@ public:
  //Publishers
   std::shared_ptr<image_transport::CameraPublisher> pub_;
   std::shared_ptr<image_transport::CameraPublisher> debugPub_;
+  std::shared_ptr<image_transport::CameraPublisher> southwestRawPub_;
   std::shared_ptr<ros::Publisher> pixel_intensity_pub_;
+  std::shared_ptr<ros::Publisher> southwestCoordinatePub_;
 
 
   //Compressing
@@ -97,6 +99,18 @@ public:
       ROS_WARN("DEBUG PUB ACTIVATED WILL SLOW DOWN PROCESSING BUT PUBLISH RGB IMAGES");
       if(pub) debugPub_ = pub;
   }
+
+  //Southwest Publisher
+  void setSouthwestRawPublisher(std::shared_ptr<image_transport::CameraPublisher> pub)
+  {
+     if(pub) southwestRawPub_ = pub;
+  }
+  void setSouthwestCoordinatePublisher(std::shared_ptr<ros::Publisher> pub)
+  {
+     if(pub) southwestCoordinatePub_ = pub;
+  }
+
+  void southwest(const FramePtr& vimba_frame_ptr);
 
 
   void start(const std::string& ip_str, const std::string& guid_str, const std::string& frame_id,

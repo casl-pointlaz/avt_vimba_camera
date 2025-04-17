@@ -35,11 +35,13 @@
 
 #include <VimbaCPP/Include/VimbaCPP.h>
 #include "VimbaCPP/Include/VmbTransform.h"
+#include  <railcam/imgproc/laserdetection.h>
 
 #include <ros/ros.h>
 #include <sensor_msgs/Image.h>
 #include <sensor_msgs/image_encodings.h>
 #include <sensor_msgs/fill_image.h>
+#include <std_msgs/Float32MultiArray.h>
 #include <std_msgs/UInt8.h>
 
 #include <string>
@@ -248,6 +250,128 @@ public:
       }
    }
 
+   void eigenMatrixToFloat32MultiArray(const Eigen::Matrix<float, -1, -1>& eigenMatrix,
+                                       std_msgs::Float32MultiArray& multiArray) {
+      // Set up dimensions
+      multiArray.layout.dim.resize(2);
+      multiArray.layout.dim[0].label = "rows";
+      multiArray.layout.dim[0].size = eigenMatrix.rows();
+      multiArray.layout.dim[0].stride = eigenMatrix.rows() * eigenMatrix.cols();
+      multiArray.layout.dim[1].label = "cols";
+      multiArray.layout.dim[1].size = eigenMatrix.cols();
+      multiArray.layout.dim[1].stride = eigenMatrix.cols();
+
+      // Set up data array
+      multiArray.data.resize(eigenMatrix.rows() * eigenMatrix.cols());
+
+      // Copy the data (row-major order)
+      int idx = 0;
+      for (int i = 0; i < eigenMatrix.rows(); ++i) {
+         for (int j = 0; j < eigenMatrix.cols(); ++j) {
+            multiArray.data[idx++] = eigenMatrix(i, j);
+         }
+      }
+   }
+
+
+   bool southWestProcess(const FramePtr vimba_frame_ptr, sensor_msgs::Image& image, std_msgs::Float32MultiArray& coordinate,bool useRaw, bool useCoordinate)
+   {
+      if (useRaw)
+      {
+         frameToImageSouthWest(vimba_frame_ptr, image);
+      }
+      if (useCoordinate)
+      {
+         //HARD CODED
+         railcam::imgproc::LaserDetectionOptions options;
+         options.numLines = 7;
+         options.pyramidsSublevels = 1;
+         options.loGThreshold = 15.0f,
+         options.upScaleForSubPixelDetection = 5.0f;
+
+         VmbUchar_t *buffer_ptr;
+
+         VmbErrorType err = vimba_frame_ptr->GetBuffer(buffer_ptr);
+         VmbUint32_t width, height,nSize;
+
+         vimba_frame_ptr->GetWidth(width);
+         vimba_frame_ptr->GetHeight(height);
+         vimba_frame_ptr->GetBufferSize(nSize);
+
+         auto buffer = Eigen::Array<uint8_t, -1, -1, Eigen::ColMajor>(height, width);
+         memcpy((void *) buffer.data(),(void *) buffer_ptr, nSize);
+         Eigen::Matrix<float, -1, -1> coords = railcam::imgproc::computeLaserDetection(buffer,options);
+         eigenMatrixToFloat32MultiArray(coords,coordinate);
+      }
+   }
+
+
+   bool frameToImageSouthWest(const FramePtr vimba_frame_ptr, sensor_msgs::Image& image) {
+      VmbPixelFormatType pixel_format;
+      VmbUint32_t width, height, nSize;
+
+      vimba_frame_ptr->GetWidth(width);
+      vimba_frame_ptr->GetHeight(height);
+      vimba_frame_ptr->GetPixelFormat(pixel_format);
+      vimba_frame_ptr->GetImageSize(nSize);
+
+      VmbUint32_t step = nSize / height;
+
+      // NOTE: YUV and ARGB formats not supported
+      std::string encoding;
+      if      (pixel_format == VmbPixelFormatMono8          ) encoding = sensor_msgs::image_encodings::MONO8;
+    else if (pixel_format == VmbPixelFormatMono10         ) encoding = sensor_msgs::image_encodings::MONO16;
+    else if (pixel_format == VmbPixelFormatMono12         ) encoding = sensor_msgs::image_encodings::MONO16;
+    else if (pixel_format == VmbPixelFormatMono12Packed   ) encoding = sensor_msgs::image_encodings::MONO16;
+    else if (pixel_format == VmbPixelFormatMono14         ) encoding = sensor_msgs::image_encodings::MONO16;
+    else if (pixel_format == VmbPixelFormatMono16         ) encoding = sensor_msgs::image_encodings::MONO16;
+    else if (pixel_format == VmbPixelFormatBayerGR8       ) encoding = sensor_msgs::image_encodings::BAYER_GRBG8;
+    else if (pixel_format == VmbPixelFormatBayerRG8       ) encoding = sensor_msgs::image_encodings::BAYER_RGGB8;
+    else if (pixel_format == VmbPixelFormatBayerGB8       ) encoding = sensor_msgs::image_encodings::BAYER_GBRG8;
+    else if (pixel_format == VmbPixelFormatBayerBG8       ) encoding = sensor_msgs::image_encodings::BAYER_BGGR8;
+    else if (pixel_format == VmbPixelFormatBayerGR10      ) encoding = sensor_msgs::image_encodings::TYPE_16SC1;
+    else if (pixel_format == VmbPixelFormatBayerRG10      ) encoding = sensor_msgs::image_encodings::TYPE_16SC1;
+    else if (pixel_format == VmbPixelFormatBayerGB10      ) encoding = sensor_msgs::image_encodings::TYPE_16SC1;
+    else if (pixel_format == VmbPixelFormatBayerBG10      ) encoding = sensor_msgs::image_encodings::TYPE_16SC1;
+    else if (pixel_format == VmbPixelFormatBayerGR12      ) encoding = sensor_msgs::image_encodings::TYPE_16SC1;
+    else if (pixel_format == VmbPixelFormatBayerRG12      ) encoding = sensor_msgs::image_encodings::TYPE_16SC1;
+    else if (pixel_format == VmbPixelFormatBayerGB12      ) encoding = sensor_msgs::image_encodings::TYPE_16SC1;
+    else if (pixel_format == VmbPixelFormatBayerBG12      ) encoding = sensor_msgs::image_encodings::TYPE_16SC1;
+    else if (pixel_format == VmbPixelFormatBayerGR12Packed) encoding = sensor_msgs::image_encodings::TYPE_32SC4;
+    else if (pixel_format == VmbPixelFormatBayerRG12Packed) encoding = sensor_msgs::image_encodings::TYPE_32SC4;
+    else if (pixel_format == VmbPixelFormatBayerGB12Packed) encoding = sensor_msgs::image_encodings::TYPE_32SC4;
+    else if (pixel_format == VmbPixelFormatBayerBG12Packed) encoding = sensor_msgs::image_encodings::TYPE_32SC4;
+    else if (pixel_format == VmbPixelFormatBayerGR16      ) encoding = sensor_msgs::image_encodings::TYPE_16SC1;
+    else if (pixel_format == VmbPixelFormatBayerRG16      ) encoding = sensor_msgs::image_encodings::TYPE_16SC1;
+    else if (pixel_format == VmbPixelFormatBayerGB16      ) encoding = sensor_msgs::image_encodings::TYPE_16SC1;
+    else if (pixel_format == VmbPixelFormatBayerBG16      ) encoding = sensor_msgs::image_encodings::TYPE_16SC1;
+    else if (pixel_format == VmbPixelFormatRgb8           ) encoding = sensor_msgs::image_encodings::RGB8;
+    else if (pixel_format == VmbPixelFormatBgr8           ) encoding = sensor_msgs::image_encodings::BGR8;
+    else if (pixel_format == VmbPixelFormatRgba8          ) encoding = sensor_msgs::image_encodings::RGBA8;
+    else if (pixel_format == VmbPixelFormatBgra8          ) encoding = sensor_msgs::image_encodings::BGRA8;
+    else if (pixel_format == VmbPixelFormatRgb12          ) encoding = sensor_msgs::image_encodings::TYPE_16UC3;
+    else if (pixel_format == VmbPixelFormatRgb16          ) encoding = sensor_msgs::image_encodings::TYPE_16UC3;
+    else
+      ROS_WARN("Received frame with unsupported pixel format %d", pixel_format);
+    if (encoding == "") return false;
+
+    VmbUchar_t *buffer_ptr;
+      VmbErrorType err = vimba_frame_ptr->GetImage(buffer_ptr);
+      bool res = false;
+      if ( VmbErrorSuccess == err ) {
+         res = sensor_msgs::fillImage(image,
+                                      encoding,
+                                      height,
+                                      width,
+                                      step,
+                                      buffer_ptr);
+      } else {
+         ROS_ERROR_STREAM("[" << ros::this_node::getName()
+                              << "]: Could not GetImage. "
+                              << "\n Error: " << errorCodeToMessage(err));
+      }
+      return res;
+   }
 
    bool frameToImage(const FramePtr vimba_frame_ptr, sensor_msgs::Image& image, sensor_msgs::Image& debugImage, int poolIndex)
    {
@@ -463,6 +587,22 @@ public:
       else
       {
          return frameToImage(vimba_frame_ptr,image,debugImage,0);
+      }
+   }
+
+   bool frameToImageSouthWestPool(const FramePtr vimba_frame_ptr, sensor_msgs::Image& image, std_msgs::Float32MultiArray& coordinate,bool useRaw, bool useCoordinate)
+   {
+      if (threadPool_)
+      {
+         std::future<bool>future = threadPool_->submit_task([this,&vimba_frame_ptr,&image,&coordinate,useRaw,useCoordinate]
+                                                             {
+                                                                return this->southWestProcess(vimba_frame_ptr,image,coordinate,useRaw,useCoordinate);
+                                                             }) ;
+         return future.get();
+      }
+      else
+      {
+         return southWestProcess(vimba_frame_ptr,image,coordinate,useRaw,useCoordinate);
       }
    }
 

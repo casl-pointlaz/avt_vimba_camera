@@ -33,6 +33,7 @@
 #include <avt_vimba_camera/avt_vimba_camera.h>
 #include <avt_vimba_camera/avt_vimba_api.h>
 
+
 #include <ros/ros.h>
 
 #include <signal.h>
@@ -173,6 +174,16 @@ void AvtVimbaCamera::stop()
           pixel_intensity_pub_->shutdown();
           pixel_intensity_pub_.reset();
       }
+      if (southwestRawPub_)
+      {
+         southwestRawPub_->shutdown();
+         southwestRawPub_.reset();
+      }
+      if (southwestCoordinatePub_)
+      {
+         southwestCoordinatePub_->shutdown();
+         southwestCoordinatePub_.reset();
+      }
 }
 
 void AvtVimbaCamera::startImaging()
@@ -293,7 +304,36 @@ void AvtVimbaCamera::frameCallback(const FramePtr vimba_frame_ptr)
   std::unique_lock<std::mutex> lock(config_mutex_);
   camera_state_ = OK;
   // Call the callback implemented by other classes
-  compress(vimba_frame_ptr);
+  if (pub_) compress(vimba_frame_ptr);
+  if (southwestRawPub_ || southwestCoordinatePub_)
+  {
+     southwest(vimba_frame_ptr);
+  }
+}
+
+void AvtVimbaCamera::southwest(const FramePtr& vimba_frame_ptr)
+{
+   ros::Time ros_time = ros::Time::now();
+   sensor_msgs::Image img;
+   std_msgs::Float32MultiArray coordinate;
+   bool useRaw = southwestRawPub_?true:false;
+   bool useCoordinate = southwestCoordinatePub_?true:false;
+
+   api_->frameToImageSouthWestPool(vimba_frame_ptr,img,coordinate,useRaw,useCoordinate);
+
+   if (useRaw)
+   {
+      sensor_msgs::CameraInfo ci;
+      ci.header.frame_id = frame_id_;
+      ci.header.stamp = ros_time;
+      img.header.stamp = ci.header.stamp;
+      southwestRawPub_->publish(img,ci);
+   }
+   if (useCoordinate)
+   {
+      southwestCoordinatePub_->publish(coordinate);
+   }
+
 }
 
 void AvtVimbaCamera::compress(const FramePtr& vimba_frame_ptr)

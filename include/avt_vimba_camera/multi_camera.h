@@ -12,6 +12,7 @@
 #include <sensor_msgs/CompressedImage.h>
 #include <sensor_msgs/CameraInfo.h>
 #include <std_msgs/UInt8.h>
+#include <std_msgs/Float32MultiArray.h>
 #include <camera_info_manager/camera_info_manager.h>
 #include <image_transport/image_transport.h>
 #include <dynamic_reconfigure/server.h>
@@ -70,6 +71,16 @@ namespace avt_vimba_camera
         std::vector<std::shared_ptr<image_transport::CameraPublisher>> pub_;
         std::vector<std::shared_ptr<image_transport::CameraPublisher>> debugPub_;
         std::vector<std::shared_ptr<ros::Publisher>> pixel_intensity_pub_;
+
+        // South West
+        bool publishSouthWestRaw_;
+        bool publishSouthWestCoordinate_;
+        std::vector<std::shared_ptr<image_transport::CameraPublisher>> southWestRawPub_;
+        std::vector<std::shared_ptr<ros::Publisher>> southWestCoordinatePub_;
+        std::vector<std::shared_ptr<AvtVimbaCamera>> southWestCam_;
+        int southWestQty_;
+        std::vector<std::string> southWestGuid_;
+        std::vector<std::string> southWestFameId_;
 
 
         // Dynamic reconfigure
