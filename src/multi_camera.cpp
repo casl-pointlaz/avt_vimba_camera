@@ -2,6 +2,8 @@
 
 #include <avt_vimba_camera/multi_camera.h>
 #include "BS_thread_pool.hpp"
+#include "railcam/imgproc/laserdetection.h"
+
 
 #define DEBUG_PRINTS 1
 
@@ -11,7 +13,7 @@ MultiCamera::MultiCamera(ros::NodeHandle& nh, ros::NodeHandle& nhp)
    : nh_(nh), nhp_(nhp), it_(nhp)
 {
 
-
+   railcam::imgproc::LaserDetectionOptions ldo{};
    // Set the params
    nhp_.param("camera_qty", camQty_, 1);
    std::shared_ptr<BS::thread_pool<>>  pool = std::make_shared<BS::thread_pool<>>(camQty_ * 2);

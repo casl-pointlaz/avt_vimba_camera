@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8.3)
+cmake_minimum_required(VERSION 3.16)
 project(avt_vimba_camera)
 
 find_package(catkin REQUIRED COMPONENTS
@@ -47,6 +47,9 @@ catkin_package(
 ###########
 ## Build ##
 ###########
+
+add_subdirectory(pointlaz-railcam)
+
 message(STATUS "=====================${libjpeg-turbo}")
 
         include_directories(
@@ -58,10 +61,10 @@ message(STATUS "=====================${libjpeg-turbo}")
 
 # C++11 support
 include(CheckCXXCompilerFlag)
-CHECK_CXX_COMPILER_FLAG("-std=c++17" COMPILER_SUPPORTS_CXX11)
+CHECK_CXX_COMPILER_FLAG("-std=c++20" COMPILER_SUPPORTS_CXX20)
 CHECK_CXX_COMPILER_FLAG("-std=c++0x" COMPILER_SUPPORTS_CXX0X)
-if(COMPILER_SUPPORTS_CXX11)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
+if(COMPILER_SUPPORTS_CXX20)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++20")
 elseif(COMPILER_SUPPORTS_CXX0X)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
 else()
@@ -122,6 +125,7 @@ add_executable(multi_camera_node
         src/jpegTurbo.cpp
         )
 add_dependencies_and_linkings(multi_camera_node)
+target_link_libraries(multi_camera_node railcam::imgproc)
 
 # Node added by pointlaz
 add_executable(publish_jpg_to_images_topics

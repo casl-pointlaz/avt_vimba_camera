@@ -1,0 +1,3 @@
+[submodule "pointlaz-railcam"]
+	path = pointlaz-railcam
+	url = git@github.com:Innoptech/pointlaz-railcam.git
