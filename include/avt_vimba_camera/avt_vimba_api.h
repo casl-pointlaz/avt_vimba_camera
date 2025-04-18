@@ -35,7 +35,7 @@
 
 #include <VimbaCPP/Include/VimbaCPP.h>
 #include "VimbaCPP/Include/VmbTransform.h"
-#include  <railcam/imgproc/laserdetection.h>
+#include "railcam/imgproc/laserdetection.h"
 
 #include <ros/ros.h>
 #include <sensor_msgs/Image.h>
@@ -289,20 +289,21 @@ public:
          options.loGThreshold = 15.0f,
          options.upScaleForSubPixelDetection = 5.0f;
 
-         VmbUchar_t *buffer_ptr;
+         unsigned char *buffer{nullptr};
 
-         VmbErrorType err = vimba_frame_ptr->GetBuffer(buffer_ptr);
          VmbUint32_t width, height,nSize;
 
          vimba_frame_ptr->GetWidth(width);
          vimba_frame_ptr->GetHeight(height);
          vimba_frame_ptr->GetBufferSize(nSize);
+         vimba_frame_ptr->GetBuffer(buffer);
 
-         auto buffer = Eigen::Array<uint8_t, -1, -1, Eigen::ColMajor>(height, width);
-         memcpy((void *) buffer.data(),(void *) buffer_ptr, nSize);
-         Eigen::Matrix<float, -1, -1> coords = railcam::imgproc::computeLaserDetection(buffer,options);
+         Eigen::Array<uint8_t, -1, -1, Eigen::RowMajor> imageBuffer= Eigen::Array<uint8_t, -1, -1, Eigen::ColMajor>(height, width);
+         memcpy((void *) imageBuffer.data(), (void *) buffer, nSize);
+         Eigen::Matrix<float, -1, -1> coords = railcam::imgproc::computeLaserDetection(imageBuffer,options);
          eigenMatrixToFloat32MultiArray(coords,coordinate);
       }
+      return true;
    }
 
 

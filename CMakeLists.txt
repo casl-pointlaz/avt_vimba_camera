@@ -19,6 +19,7 @@ find_package(libjpeg-turbo REQUIRED)
 
 
 set(THREADPOOL_INCLUDE_DIR " ${CMAKE_CURRENT_SOURCE_DIR}/include/thread_pool/include")
+set(RAILCAM_INCLUDE_DIR " ${CMAKE_CURRENT_SOURCE_DIR}/pointlaz-railcam/modules/imgproc/include")
 
 set(JETRAW_INCLUDE_DIR " ${CMAKE_CURRENT_SOURCE_DIR}/JetrawWithDPCore-22.02.16.1/include")
 
@@ -81,6 +82,7 @@ function(add_dependencies_and_linkings arg)
       ${catkin_LIBRARIES}
       ${JETRAW_LIBS}
       libjpeg-turbo::turbojpeg
+            railcam::imgproc
       ${CMAKE_CURRENT_SOURCE_DIR}/lib/64bit/libVimbaC.so
       ${CMAKE_CURRENT_SOURCE_DIR}/lib/64bit/libVimbaCPP.so
       ${CMAKE_CURRENT_SOURCE_DIR}/lib/64bit/libVimbaImageTransform.so
