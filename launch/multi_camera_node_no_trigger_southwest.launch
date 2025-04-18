@@ -1,0 +1,340 @@
+<!-- multi_camera_node.launch -->
+<!-- Launch a "multi_camera_node" node from "avt_vimba_camera" to get data from multiple cameras, using only one node -->
+<!-- Created by pointlaz -->
+
+<launch>
+  <!-- multi_camera_node parameters, these parameters define the cameras parameters -->
+  <!-- Change these parameters using the quantity and ID of your cameras -->
+
+  <!-- Update compression_type parameter -->
+  <arg name="compression_type"               default="jpegTurbo"/>
+
+  <!-- Cameras IDs config file -->
+  <arg name="cameras_ids_config_file"   default="$(find avt_vimba_camera)/config/cameras_ids.yaml" />
+  <!-- Camera 0 -->
+  <arg name="name_0"                    default="camera_0"/>
+  <arg name="frame_id_0"                default="camera_0"/>
+  <arg name="camera_info_url_0"         default="/home/pointlaz/catkin_ws/src/avt_vimba_camera/calibrations/calibration_example.yaml"/>
+  <!-- Camera 1 -->
+  <arg name="name_1"                    default="camera_1"/>
+  <arg name="frame_id_1"                default="camera_1"/>
+  <arg name="camera_info_url_1"         default="/home/pointlaz/catkin_ws/src/avt_vimba_camera/calibrations/calibration_example.yaml"/>
+  <!-- Camera 2 -->
+  <arg name="name_2"                    default="camera_2"/>
+  <arg name="frame_id_2"                default="camera_2"/>
+  <arg name="camera_info_url_2"         default="/home/pointlaz/catkin_ws/src/avt_vimba_camera/calibrations/calibration_example.yaml"/>
+  <!-- Camera 3 -->
+  <arg name="name_3"                    default="camera_3"/>
+  <arg name="frame_id_3"                default="camera_3"/>
+  <arg name="camera_info_url_3"         default="/home/pointlaz/catkin_ws/src/avt_vimba_camera/calibrations/calibration_example.yaml"/>
+  <!-- Camera 4 -->
+  <arg name="name_4"                    default="camera_4"/>
+  <arg name="frame_id_4"                default="camera_4"/>
+  <arg name="camera_info_url_4"         default="/home/pointlaz/catkin_ws/src/avt_vimba_camera/calibrations/calibration_example.yaml"/>
+  <!-- Camera 5 -->
+  <arg name="name_5"                    default="camera_5"/>
+  <arg name="frame_id_5"                default="camera_5"/>
+  <arg name="camera_info_url_5"         default="/home/pointlaz/catkin_ws/src/avt_vimba_camera/calibrations/calibration_example.yaml"/>
+  <!-- Camera 6 -->
+  <arg name="name_6"                    default="camera_6"/>
+  <arg name="frame_id_6"                default="camera_6"/>
+  <arg name="camera_info_url_6"         default="/home/pointlaz/catkin_ws/src/avt_vimba_camera/calibrations/calibration_example.yaml"/>
+
+  <!-- Driver parameters, these parameters affect the way the ROS driver works -->
+  <arg name="use_measurement_time"      default="false"   doc="Use the measurement time from the camera"/>
+  <arg name="ptp_offset"                default="0"       doc="Offset to add to the timestamp from the camera (s). Useful for converting from TAI to UTC time. Only applies if use_measurement_time is true"/>
+  <arg name="camera_info_url"           default="file://$(find avt_vimba_camera)/calibrations/calibration_example.yaml"/>
+  <arg name="print_all_features"        default="false"   doc="Show all camera features on the console during startup"/>
+  <arg name="image_proc"                default="false"   doc="Launch image_proc with driver"/>
+
+  <!-- Camera parameters, these parameters are used to configure the AVT camera upon startup -->
+  <!-- See the cfg/AvtVimbaCamera.cfg file for documentation -->
+
+  <!-- Acquisition -->
+  <arg name="acquisition_mode"          default="Continuous"/>
+  <arg name="acquisition_rate"          default="10"/>
+  <!-- Trigger -->
+  <arg name="trigger_source"            default="Line1"/>
+  <arg name="trigger_mode"              default="Off"/>
+  <arg name="trigger_selector"          default="FrameStart"/>
+  <arg name="trigger_activation"        default="RisingEdge"/>
+  <arg name="trigger_delay"             default="0.0"/>
+  <!-- Exposure -->
+  <arg name="exposure"                  default="10000"/>
+  <arg name="exposure_auto"             default="Off"/>
+  <arg name="exposure_mode"             default="Timed"/>
+  <arg name="exposure_auto_alg"         default="FitRange"/>
+  <arg name="exposure_auto_tol"         default="5"/>
+  <arg name="exposure_auto_max"         default="20000"/>
+  <arg name="exposure_auto_min"         default="1000"/>
+  <arg name="exposure_auto_outliers"    default="10000"/>
+  <arg name="exposure_auto_rate"        default="10000"/>
+  <arg name="exposure_auto_target"      default="10000"/>
+  <!-- Gain -->
+  <arg name="gain"                      default="0"/>
+  <arg name="gain_auto"                 default="Off"/>
+  <arg name="gain_auto_adjust_tol"      default="5"/>
+  <arg name="gain_auto_max"             default="32"/>
+  <arg name="gain_auto_min"             default="0"/>
+  <arg name="gain_auto_outliers"        default="0"/>
+  <arg name="gain_auto_rate"            default="50"/>
+  <arg name="gain_auto_target"          default="50"/>
+  <!-- White Balance -->
+  <arg name="balance_ratio_abs"         default="1.0"/>
+  <arg name="balance_ratio_selector"    default="Red"/>
+  <arg name="whitebalance_auto"         default="Off"/>
+  <arg name="whitebalance_auto_tol"     default="5"/>
+  <arg name="whitebalance_auto_rate"    default="100"/>
+  <!-- Binning and Decimation -->
+  <arg name="binning_x"                 default="1"/>
+  <arg name="binning_y"                 default="1"/>
+  <arg name="decimation_x"              default="1"/>
+  <arg name="decimation_y"              default="1"/>
+  <!-- ROI -->
+  <arg name="width"                     default="2064"/>
+  <arg name="height"                    default="1544"/>
+  <arg name="offset_x"                  default="0"/>
+  <arg name="offset_y"                  default="0"/>
+  <!-- Pixel Format -->
+  <arg name="pixel_format"              default="BayerRG8"/>
+  <!-- Bandwidth -->
+  <arg name="stream_bytes_per_second"   default="55000000"/>
+  <!-- PTP Synchronization -->
+  <arg name="ptp_mode"                  default="Off"/>
+  <!-- USB GPIO -->
+  <arg name="line_selector"             default="Line0"/>
+  <arg name="line_mode"                 default="Input"/>
+
+  <!-- Jpeg compression quality -->
+  <arg name="compression_jpeg_quality"              default="90"/>
+
+  <!-- Pixel Intensity parameters -->
+  <arg name="calculate_pixel_intensity"                         default="true"/>      <!-- (bool) If true, the pixel intensity will be calculated for every camera and published in topics. -->
+  <arg name="pixel_intensity_pixel_steps"                       default="10"/>        <!-- (int) A pixel will be taken every 'pixel_intensity_pixel_steps' to do the pixel intensity calculation. -->
+  <arg name="pixel_intensity_saturated_threshold"               default="-1.0"/>      <!-- (float ; [0.0 ; 1.0] ; -1.0 to not use it) The ratio of saturated pixels for which the image is considered saturated. -->
+  <arg name="pixel_intensity_count_saturated_pixels_in_mean"    default="true"/>      <!-- (bool) If true, the saturated pixels will be taken into account in the mean pixel intensity calculation -->
+  <arg name="pixel_intensity_saturation_value"                  default="255"/>       <!-- (int ; [0 ; 255]) The value for which a pixel is considered saturated. -->
+  <arg name="pixel_intensity_use_moving_average"                default="false"/>     <!-- (bool) True if you want to apply a moving average filter to the pixel intensities values -->
+  <arg name="pixel_intensity_moving_average_k"                  default="5"/>         <!-- (int > 0) Number of values on which you want to do the moving average -->
+  <arg name="pixel_intensity_echo"                              default="false"/>     <!-- (bool) If true, results of the calculation and computation time will be echo in terminal. -->
+  <arg name="echoed_pixel_intensities"                          default="[0]"/>       <!-- (array of int > 0) The id of the cameras for which you want some echoes -->
+
+  <!-- Debug image to be published in a readable way for RQT, test compression algorithms -->
+  <arg name="debug_image"                 default="false"/>
+  <arg name="compress_info"               default="false"/>
+
+  <group if="$(arg image_proc)" ns="multi_camera">
+    <node name="image_proc" pkg="image_proc" type="image_proc"/>
+  </group>
+
+  <!-- SouthWest -->
+  <arg name="widthSW"                     default="2464"/>
+  <arg name="heightSW"                    default="2064"/>
+  <arg name="pixel_formatSW"              default="Mono8"/>
+  <arg name="gainSW"                      default="0"/>
+  <arg name="exposureSW"                  default="10000"/>
+  <arg name="acquisition_modeSW"          default="Continuous"/>
+  <arg name="acquisition_rateSW"          default="10"/>
+  <arg name="stream_bytes_per_secondSW"   default="55000000"/>
+  <arg name="trigger_sourceSW"            default="Line1"/>
+  <arg name="trigger_modeSW"              default="Off"/>
+  <arg name="trigger_selectorSW"          default="FrameStart"/>
+  <arg name="trigger_activationSW"        default="RisingEdge"/>
+  <arg name="line_selectorSW"               default="Line0"/>
+
+  <arg name="saveRAW"                     default="true"/>
+  <arg name="saveCoordinate"              default="true"/>
+  <arg name="laser_line"                  default="7"/>
+  <arg name="pyramids_sublevels"          default="1"/>
+  <arg name="loGThreshold"                default="15.0"/>
+  <arg name="upScaleForSubPixelDetection" default="5.0"/>
+
+
+
+  <!-- Run the multi_camera_node -->
+  <node name="multi_camera" pkg="avt_vimba_camera" type="multi_camera_node" output="screen">
+    <param name="compression_type"                    value="$(arg compression_type)"/>
+
+    <!-- Cameras IDs config file -->
+    <rosparam command="load"                file="$(arg cameras_ids_config_file)" />
+    <!-- Camera 0 -->
+    <param name="name_0"                    value="$(arg name_0)"/>
+    <param name="frame_id_0"                value="$(arg frame_id_0)"/>
+    <param name="camera_info_url_0"         value="$(arg camera_info_url_0)"/>
+    <!-- Camera 1 -->
+    <param name="name_1"                    value="$(arg name_1)"/>
+    <param name="frame_id_1"                value="$(arg frame_id_1)"/>
+    <param name="camera_info_url_1"         value="$(arg camera_info_url_1)"/>
+    <!-- Camera 2 -->
+    <param name="name_2"                    value="$(arg name_2)"/>
+    <param name="frame_id_2"                value="$(arg frame_id_2)"/>
+    <param name="camera_info_url_2"         value="$(arg camera_info_url_2)"/>
+    <!-- Camera 3 -->
+    <param name="name_3"                    value="$(arg name_3)"/>
+    <param name="frame_id_3"                value="$(arg frame_id_3)"/>
+    <param name="camera_info_url_3"         value="$(arg camera_info_url_3)"/>
+    <!-- Camera 4 -->
+    <param name="name_4"                    value="$(arg name_4)"/>
+    <param name="frame_id_4"                value="$(arg frame_id_4)"/>
+    <param name="camera_info_url_4"         value="$(arg camera_info_url_4)"/>
+    <!-- Camera 5 -->
+    <param name="name_5"                    value="$(arg name_5)"/>
+    <param name="frame_id_5"                value="$(arg frame_id_5)"/>
+    <param name="camera_info_url_5"         value="$(arg camera_info_url_5)"/>
+    <!-- Camera 6 -->
+    <param name="name_6"                    value="$(arg name_6)"/>
+    <param name="frame_id_6"                value="$(arg frame_id_6)"/>
+    <param name="camera_info_url_6"         value="$(arg camera_info_url_6)"/>
+    <!-- Driver parameters -->
+    <param name="use_measurement_time"      value="$(arg use_measurement_time)"/>
+    <param name="ptp_offset"                value="$(arg ptp_offset)"/>
+    <param name="camera_info_url"           value="$(arg camera_info_url)"/>
+    <param name="print_all_features"        value="$(arg print_all_features)"/>
+    <!-- Acquisition -->
+    <param name="acquisition_mode"          value="$(arg acquisition_mode)"/>
+    <param name="acquisition_rate"          value="$(arg acquisition_rate)"/>
+    <!-- Trigger -->
+    <param name="trigger_source"            value="$(arg trigger_source)"/>
+    <param name="trigger_mode"              value="$(arg trigger_mode)"/>
+    <param name="trigger_selector"          value="$(arg trigger_selector)"/>
+    <param name="trigger_activation"        value="$(arg trigger_activation)"/>
+    <param name="trigger_delay"             value="$(arg trigger_delay)"/>
+    <!-- Exposure -->
+    <param name="exposure"                  value="$(arg exposure)"/>
+    <param name="exposure_mode"             value="$(arg exposure_mode)"/>
+    <param name="exposure_auto"             value="$(arg exposure_auto)"/>
+    <param name="exposure_auto_alg"         value="$(arg exposure_auto_alg)"/>
+    <param name="exposure_auto_tol"         value="$(arg exposure_auto_tol)"/>
+    <param name="exposure_auto_max"         value="$(arg exposure_auto_max)"/>
+    <param name="exposure_auto_min"         value="$(arg exposure_auto_min)"/>
+    <param name="exposure_auto_outliers"    value="$(arg exposure_auto_outliers)"/>
+    <param name="exposure_auto_rate"        value="$(arg exposure_auto_rate)"/>
+    <param name="exposure_auto_target"      value="$(arg exposure_auto_target)"/>
+    <!-- Gain -->
+    <param name="gain"                      value="$(arg gain)"/>
+    <param name="gain_auto"                 value="$(arg gain_auto)"/>
+    <param name="gain_auto_adjust_tol"      value="$(arg gain_auto_adjust_tol)"/>
+    <param name="gain_auto_max"             value="$(arg gain_auto_max)"/>
+    <param name="gain_auto_min"             value="$(arg gain_auto_min)"/>
+    <param name="gain_auto_outliers"        value="$(arg gain_auto_outliers)"/>
+    <param name="gain_auto_rate"            value="$(arg gain_auto_rate)"/>
+    <param name="gain_auto_target"          value="$(arg gain_auto_target)"/>
+    <!-- White Balance -->
+    <param name="balance_ratio_abs"         value="$(arg balance_ratio_abs)"/>
+    <param name="balance_ratio_selector"    value="$(arg balance_ratio_selector)"/>
+    <param name="whitebalance_auto"         value="$(arg whitebalance_auto)"/>
+    <param name="whitebalance_auto_tol"     value="$(arg whitebalance_auto_tol)"/>
+    <param name="whitebalance_auto_rate"    value="$(arg whitebalance_auto_rate)"/>
+    <!-- Binning and Decimation -->
+    <param name="binning_x"                 value="$(arg binning_x)"/>
+    <param name="binning_y"                 value="$(arg binning_y)"/>
+    <param name="decimation_x"              value="$(arg decimation_x)"/>
+    <param name="decimation_y"              value="$(arg decimation_y)"/>
+    <!-- ROI -->
+    <param name="width"                     value="$(arg width)"/>
+    <param name="height"                    value="$(arg height)"/>
+    <param name="offset_x"                  value="$(arg offset_x)"/>
+    <param name="offset_y"                  value="$(arg offset_y)"/>
+    <!-- Pixel Format -->
+    <param name="pixel_format"              value="$(arg pixel_format)"/>
+    <!-- Bandwidth -->
+    <param name="stream_bytes_per_second"   value="$(arg stream_bytes_per_second)"/>
+    <!-- PTP Synchronization -->
+    <param name="ptp_mode"                  value="$(arg ptp_mode)"/>
+    <!-- USB GPIO -->
+    <param name="line_selector"             value="$(arg line_selector)"/>
+    <param name="line_mode"                 value="$(arg line_mode)"/>
+
+    <!-- Jpeg compression quality -->
+    <param name="compress_jpeg_quality"                             value="$(arg compression_jpeg_quality)"/>
+
+    <!-- Pixel Intensity parameters -->
+    <param name="calculate_pixel_intensity"                       value="$(arg calculate_pixel_intensity)"/>
+    <param name="pixel_intensity_pixel_steps"                     value="$(arg pixel_intensity_pixel_steps)"/>
+    <param name="pixel_intensity_saturated_threshold"             value="$(arg pixel_intensity_saturated_threshold)"/>
+    <param name="pixel_intensity_count_saturated_pixels_in_mean"  value="$(arg pixel_intensity_count_saturated_pixels_in_mean)"/>
+    <param name="pixel_intensity_saturation_value"                value="$(arg pixel_intensity_saturation_value)"/>
+    <param name="pixel_intensity_use_moving_average"              value="$(arg pixel_intensity_use_moving_average)"/>
+    <param name="pixel_intensity_moving_average_k"                value="$(arg pixel_intensity_moving_average_k)"/>
+    <param name="pixel_intensity_echo"                            value="$(arg pixel_intensity_echo)"/>
+    <rosparam param="echoed_pixel_intensities" subst_value="True">$(arg echoed_pixel_intensities)</rosparam>
+
+    <!-- Debug Image Parameters -->
+    <param name="debug_image"                                     value="$(arg debug_image)"/>
+    <param name="compress_info"                                   value="$(arg compress_info)"/>
+
+  </node>
+
+  <!-- Prevent to compress data with image transport -->
+  <rosparam ns="/multi_camera/image_raw_0" param="disable_pub_plugins" >
+    - 'image_transport/compressed'
+    - 'image_transport/compressedDepth'
+    - 'image_transport/theora'
+  </rosparam>
+  <rosparam ns="/multi_camera/image_raw_1" param="disable_pub_plugins" >
+    - 'image_transport/compressed'
+    - 'image_transport/compressedDepth'
+    - 'image_transport/theora'
+  </rosparam>
+  <rosparam ns="/multi_camera/image_raw_2" param="disable_pub_plugins" >
+    - 'image_transport/compressed'
+    - 'image_transport/compressedDepth'
+    - 'image_transport/theora'
+  </rosparam>
+  <rosparam ns="/multi_camera/image_raw_3" param="disable_pub_plugins" >
+    - 'image_transport/compressed'
+    - 'image_transport/compressedDepth'
+    - 'image_transport/theora'
+  </rosparam>
+  <rosparam ns="/multi_camera/image_raw_4" param="disable_pub_plugins" >
+    - 'image_transport/compressed'
+    - 'image_transport/compressedDepth'
+    - 'image_transport/theora'
+  </rosparam>
+  <rosparam ns="/multi_camera/image_raw_5" param="disable_pub_plugins" >
+    - 'image_transport/compressed'
+    - 'image_transport/compressedDepth'
+    - 'image_transport/theora'
+  </rosparam>
+  <rosparam ns="/multi_camera/image_raw_6" param="disable_pub_plugins" >
+    - 'image_transport/compressed'
+    - 'image_transport/compressedDepth'
+    - 'image_transport/theora'
+  </rosparam>
+  <rosparam ns="/multi_camera/image_raw_0_debug" param="disable_pub_plugins" >
+    - 'image_transport/compressed'
+    - 'image_transport/compressedDepth'
+    - 'image_transport/theora'
+  </rosparam>
+  <rosparam ns="/multi_camera/image_raw_1_debug" param="disable_pub_plugins" >
+    - 'image_transport/compressed'
+    - 'image_transport/compressedDepth'
+    - 'image_transport/theora'
+  </rosparam>
+  <rosparam ns="/multi_camera/image_raw_2_debug" param="disable_pub_plugins" >
+    - 'image_transport/compressed'
+    - 'image_transport/compressedDepth'
+    - 'image_transport/theora'
+  </rosparam>
+  <rosparam ns="/multi_camera/image_raw_3_debug" param="disable_pub_plugins" >
+    - 'image_transport/compressed'
+    - 'image_transport/compressedDepth'
+    - 'image_transport/theora'
+  </rosparam>
+  <rosparam ns="/multi_camera/image_raw_4_debug" param="disable_pub_plugins" >
+    - 'image_transport/compressed'
+    - 'image_transport/compressedDepth'
+    - 'image_transport/theora'
+  </rosparam>
+  <rosparam ns="/multi_camera/image_raw_5_debug" param="disable_pub_plugins" >
+    - 'image_transport/compressed'
+    - 'image_transport/compressedDepth'
+    - 'image_transport/theora'
+  </rosparam>
+  <rosparam ns="/multi_camera/image_raw_6_debug" param="disable_pub_plugins" >
+    - 'image_transport/compressed'
+    - 'image_transport/compressedDepth'
+    - 'image_transport/theora'
+  </rosparam>
+
+</launch>

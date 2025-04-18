@@ -305,7 +305,7 @@ void AvtVimbaCamera::frameCallback(const FramePtr vimba_frame_ptr)
   camera_state_ = OK;
   // Call the callback implemented by other classes
   if (pub_) compress(vimba_frame_ptr);
-  if (southwestRawPub_ || southwestCoordinatePub_)
+  if (isSouthWest)
   {
      southwest(vimba_frame_ptr);
   }
@@ -834,6 +834,22 @@ void AvtVimbaCamera::updateConfig(Config& config)
   std::unique_lock<std::mutex> lock(config_mutex_);
   ROS_INFO("--------------------------Updating config:");
   stopImaging();
+  if (isSouthWest)
+  {
+     config.width = swConfig_.width;
+     config.height = swConfig_.height;
+     config.pixel_format = swConfig_.pixelFormat;
+     config.gain = swConfig_.gain;
+     config.exposure = swConfig_.exposure;
+     config.acquisition_mode = swConfig_.acquistionMode;
+     config.acquisition_rate = swConfig_.acquisitionRate;
+     config.stream_bytes_per_second = swConfig_.stream_byte_per_second;
+     config.line_selector = swConfig_.line_selector;
+     config.trigger_mode = swConfig_.trigger_mode;
+     config.trigger_selector = swConfig_.trigger_selector;
+     config.trigger_activation = swConfig_.trigger_activation;
+  }
+
   ros::Duration(0.5).sleep();
   updateExposureConfig(config);
   updateGammaConfig(config);
@@ -854,6 +870,7 @@ void AvtVimbaCamera::updateConfig(Config& config)
 }
 
 /** Change the Trigger configuration */
+//Todo
 void AvtVimbaCamera::updateAcquisitionConfig(Config& config)
 {
   if (on_init_)
@@ -953,6 +970,7 @@ void AvtVimbaCamera::updateIrisConfig(Config& config)
 }
 
 /** Change the Exposure configuration */
+//Todo
 void AvtVimbaCamera::updateExposureConfig(Config& config)
 {
   if (on_init_)
@@ -1063,6 +1081,7 @@ void AvtVimbaCamera::updateDspsubregionConfig(Config& config)
 }
 
 /** Change the Gain configuration */
+//Todo
 void AvtVimbaCamera::updateGainConfig(Config& config)
 {
   if (on_init_)
@@ -1191,6 +1210,7 @@ void AvtVimbaCamera::updateImageModeConfig(Config& config)
 }
 
 /** Change the ROI configuration */
+//Todo
 void AvtVimbaCamera::updateROIConfig(Config& config)
 {
   if (on_init_)
@@ -1232,6 +1252,7 @@ void AvtVimbaCamera::updateBandwidthConfig(Config& config)
 }
 
 /** Change the Pixel Format configuration */
+//Todo
 void AvtVimbaCamera::updatePixelFormatConfig(Config& config)
 {
   if (on_init_)

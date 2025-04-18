@@ -119,22 +119,24 @@ public:
       int width;
       int height;
       std::string pixelFormat;
-      int gain;
-      int exposue;
+      double gain;
+      double exposure;
       std::string acquistionMode;
-      int acquisitionRate;
+      double acquisitionRate;
       int stream_byte_per_second;
       std::string trigger_source;
+      std::string line_selector;
       std::string trigger_mode;
       std::string trigger_selector;
       std::string trigger_activation;
 
       //Detection
-      int laser_line;
-      int pyramids_sublevels;
-      float loGThreshold;
-      float upScaleForSubPixelDetection;
+      int laser_line_;
+      int pyramids_sublevels_;
+      float loGThreshold_;
+      float upScaleForSubPixelDetection_;
   };
+  SouthwestConfig swConfig_
 
 
   void start(const std::string& ip_str, const std::string& guid_str, const std::string& frame_id,
