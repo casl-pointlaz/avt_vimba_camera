@@ -129,14 +129,13 @@ public:
       std::string trigger_mode;
       std::string trigger_selector;
       std::string trigger_activation;
-
-      //Detection
-      int laser_line_;
-      int pyramids_sublevels_;
-      float loGThreshold_;
-      float upScaleForSubPixelDetection_;
   };
-  SouthwestConfig swConfig_
+  SouthwestConfig swConfig_;
+  //Detection
+  int laser_line_;
+  int pyramids_sublevels_;
+  float loGThreshold_;
+  float upScaleForSubPixelDetection_;
 
 
   void start(const std::string& ip_str, const std::string& guid_str, const std::string& frame_id,

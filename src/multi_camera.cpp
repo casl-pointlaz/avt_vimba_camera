@@ -15,7 +15,8 @@ MultiCamera::MultiCamera(ros::NodeHandle& nh, ros::NodeHandle& nhp)
    railcam::imgproc::LaserDetectionOptions ldo{};
    // Set the params
    nhp_.param("camera_qty", camQty_, 1);
-   nhp_.param("southwest_qty", southWestQty_, 1);
+   nhp_.param("southwest_qty", southWestQty_, 0);
+   ROS_INFO_STREAM("--------- Southwest QTY " << southWestQty_);
    std::shared_ptr<BS::thread_pool<>>  pool = std::make_shared<BS::thread_pool<>>( 2*(camQty_+southWestQty_));
    api_ = std::make_shared<AvtVimbaApi>(pool);
    api_->start();
@@ -144,9 +145,9 @@ MultiCamera::MultiCamera(ros::NodeHandle& nh, ros::NodeHandle& nhp)
 
    //South West
 
-   nhp_.param("southwest_raw", publishSouthWestRaw_, true);
-   nhp_.param("southwest_coordinate", publishSouthWestCoordinate_, true);
-   if (publishSouthWestCoordinate_ || publishSouthWestRaw_)
+   nhp_.param("saveRAW", publishSouthWestRaw_, false);
+   nhp_.param("saveCoordinate", publishSouthWestCoordinate_, false);
+   if ((publishSouthWestCoordinate_ || publishSouthWestRaw_) && southWestQty_>0 )
    {
       std::string topicNameSouthWestRaw = "southwest_raw_";
       std::string topicNameSouthWestCoordinate = "southwest_coordinate_";
@@ -159,23 +160,41 @@ MultiCamera::MultiCamera(ros::NodeHandle& nh, ros::NodeHandle& nhp)
 
       for(int i = 0; i < southWestQty_; i++)
       {
-         nhp_.param("southwest_guid_" + std::to_string(i), southWestGuid_[i], std::string(""));
-         nhp_.param("south_west_frame_id_" + std::to_string(i), southWestFameId_[i], std::string(""));
+         nhp_.param("guidSW_" + std::to_string(i), southWestGuid_[i], std::string(""));
+         nhp_.param("frame_idSW_" + std::to_string(i), southWestFameId_[i], std::string(""));
          ROS_INFO("-------------New South West Cam");
          std::shared_ptr<AvtVimbaCamera>
             southWestCam = std::make_shared<AvtVimbaCamera>(southWestFameId_[i], i, api_, nullptr);
+         nhp_.param("widthSW", southWestCam->swConfig_.width, 2064);
+         nhp_.param("heightSW", southWestCam->swConfig_.height, 1564);
+         nhp_.param("pixel_formatSW", southWestCam->swConfig_.pixelFormat, std::string("Mono8"));
+         nhp_.param("gainSW", southWestCam->swConfig_.gain, 0.0);
+         nhp_.param("exposureSW", southWestCam->swConfig_.exposure, 10000.0);
+         nhp_.param("acquisition_modeSW", southWestCam->swConfig_.acquistionMode, std::string("Continuous"));
+         nhp_.param("acquisition_rateSW", southWestCam->swConfig_.acquisitionRate, 10.0);
+         nhp_.param("stream_bytes_per_secondSW", southWestCam->swConfig_.stream_byte_per_second, 55000000);
+         nhp_.param("trigger_sourceSW", southWestCam->swConfig_.trigger_source, std::string("Line1"));
+         nhp_.param("trigger_modeSW", southWestCam->swConfig_.trigger_mode, std::string("Off"));
+         nhp_.param("trigger_selectorSW", southWestCam->swConfig_.trigger_selector, std::string("FrameStart"));
+         nhp_.param("trigger_activationSW", southWestCam->swConfig_.trigger_activation, std::string("RisingEdge"));
+         nhp_.param("line_selectorSW", southWestCam->swConfig_.line_selector, std::string("Line0"));
+         
+         nhp_.param("laser_line", southWestCam->laser_line_, 7);
+         nhp_.param("pyramids_sublevels", southWestCam->pyramids_sublevels_, 1);
+         nhp_.param("loGThreshold", southWestCam->loGThreshold_, 15.0f);
+         nhp_.param("upScaleForSubPixelDetection", southWestCam->upScaleForSubPixelDetection_, 5.0f);
+
          if (publishSouthWestRaw_)
          {
             southWestRawPub_[i].reset(new image_transport::CameraPublisher);
             *southWestRawPub_[i] = it_.advertiseCamera(topicNameSouthWestRaw + std::to_string(i), 1);
             southWestCam->setSouthwestRawPublisher(southWestRawPub_[i]);
          }
-
          if (publishSouthWestCoordinate_)
          {
             southWestCoordinatePub_[i] = std::make_shared<ros::Publisher>();
-            *southWestCoordinatePub_[i] = nh_.advertise<std_msgs::Float32MultiArray>(topicNameSouthWestCoordinate + std::to_string(i), 1);
-            southWestCam->setSouthwestRawPublisher(southWestRawPub_[i]);
+            *southWestCoordinatePub_[i] = nh_.advertise<std_msgs::Float32MultiArray>("/multi_camera/"+topicNameSouthWestCoordinate + std::to_string(i), 1);
+            southWestCam->setSouthwestCoordinatePublisher(southWestCoordinatePub_[i]);
          }
          southWestCam_[i] = southWestCam;
       }
@@ -241,6 +260,34 @@ void MultiCamera::configure(Config& newconfig, uint32_t level)
          cam_[i]->startImaging();
       }
 
+   }
+   ROS_WARN_STREAM("-------------Configure Southwest");
+   for (int i = 0 ; i < southWestCam_.size();i++)
+   {
+      ROS_INFO("-------------------------------CAMERA %d", i);
+      // The camera already stops & starts acquisition
+      // so there's no problem on changing any feature.
+      if (southWestCam_[i]->isOpened())
+      {
+         ROS_WARN_STREAM("-------------STOP IMAGING CAM " << i);
+         southWestCam_[i]->stopImaging();
+      }
+      if (!southWestCam_[i]->isOpened())
+      {
+         ROS_WARN_STREAM("-------------START CAM " << i);
+         southWestCam_[i]->start(ip_, southWestGuid_[i], southWestFameId_[i], print_all_features_);
+      }
+
+      if (southWestCam_[i]->isOpened())
+      {
+         ROS_WARN_STREAM("-------------UPDATE CONFIG CAM " << i);
+         southWestCam_[i]->updateConfig(newconfig);
+      }
+      if (southWestCam_[i]->connected_)
+      {
+         ROS_WARN_STREAM("-------------START IMAGING CAM " << i);
+         southWestCam_[i]->startImaging();
+      }
    }
 }
 

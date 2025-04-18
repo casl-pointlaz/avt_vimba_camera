@@ -265,16 +265,11 @@ public:
       multiArray.data.resize(eigenMatrix.rows() * eigenMatrix.cols());
 
       // Copy the data (row-major order)
-      int idx = 0;
-      for (int i = 0; i < eigenMatrix.rows(); ++i) {
-         for (int j = 0; j < eigenMatrix.cols(); ++j) {
-            multiArray.data[idx++] = eigenMatrix(i, j);
-         }
-      }
+      std::memcpy(multiArray.data.data(), eigenMatrix.data(), eigenMatrix.size() * sizeof(float));
    }
 
 
-   bool southWestProcess(const FramePtr vimba_frame_ptr, sensor_msgs::Image& image, std_msgs::Float32MultiArray& coordinate,bool useRaw, bool useCoordinate)
+   bool southWestProcess(const FramePtr vimba_frame_ptr, sensor_msgs::Image& image, std_msgs::Float32MultiArray& coordinate,bool useRaw, bool useCoordinate,railcam::imgproc::LaserDetectionOptions &options)
    {
       if (useRaw)
       {
@@ -282,13 +277,6 @@ public:
       }
       if (useCoordinate)
       {
-         //HARD CODED
-         railcam::imgproc::LaserDetectionOptions options;
-         options.numLines = 7;
-         options.pyramidsSublevels = 1;
-         options.loGThreshold = 15.0f,
-         options.upScaleForSubPixelDetection = 5.0f;
-
          unsigned char *buffer{nullptr};
 
          VmbUint32_t width, height,nSize;
@@ -298,7 +286,7 @@ public:
          vimba_frame_ptr->GetBufferSize(nSize);
          vimba_frame_ptr->GetBuffer(buffer);
 
-         Eigen::Array<uint8_t, -1, -1, Eigen::RowMajor> imageBuffer= Eigen::Array<uint8_t, -1, -1, Eigen::ColMajor>(height, width);
+         Eigen::Array<uint8_t, -1, -1, Eigen::RowMajor> imageBuffer= Eigen::Array<uint8_t, -1, -1, Eigen::RowMajor>(height, width);
          memcpy((void *) imageBuffer.data(), (void *) buffer, nSize);
          Eigen::Matrix<float, -1, -1> coords = railcam::imgproc::computeLaserDetection(imageBuffer,options);
          eigenMatrixToFloat32MultiArray(coords,coordinate);
@@ -591,19 +579,19 @@ public:
       }
    }
 
-   bool frameToImageSouthWestPool(const FramePtr vimba_frame_ptr, sensor_msgs::Image& image, std_msgs::Float32MultiArray& coordinate,bool useRaw, bool useCoordinate)
+   bool frameToImageSouthWestPool(const FramePtr vimba_frame_ptr, sensor_msgs::Image& image, std_msgs::Float32MultiArray& coordinate,bool useRaw, bool useCoordinate,railcam::imgproc::LaserDetectionOptions &options)
    {
       if (threadPool_)
       {
-         std::future<bool>future = threadPool_->submit_task([this,&vimba_frame_ptr,&image,&coordinate,useRaw,useCoordinate]
+         std::future<bool>future = threadPool_->submit_task([this,&vimba_frame_ptr,&image,&coordinate,useRaw,useCoordinate,&options]
                                                              {
-                                                                return this->southWestProcess(vimba_frame_ptr,image,coordinate,useRaw,useCoordinate);
+                                                                return this->southWestProcess(vimba_frame_ptr,image,coordinate,useRaw,useCoordinate,options);
                                                              }) ;
          return future.get();
       }
       else
       {
-         return southWestProcess(vimba_frame_ptr,image,coordinate,useRaw,useCoordinate);
+         return southWestProcess(vimba_frame_ptr,image,coordinate,useRaw,useCoordinate,options);
       }
    }
 

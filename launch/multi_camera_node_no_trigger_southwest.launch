@@ -10,7 +10,7 @@
   <arg name="compression_type"               default="jpegTurbo"/>
 
   <!-- Cameras IDs config file -->
-  <arg name="cameras_ids_config_file"   default="$(find avt_vimba_camera)/config/cameras_ids.yaml" />
+  <arg name="cameras_ids_config_file"   default="$(find avt_vimba_camera)/config/cameras_idsSW.yaml" />
   <!-- Camera 0 -->
   <arg name="name_0"                    default="camera_0"/>
   <arg name="frame_id_0"                default="camera_0"/>
@@ -39,6 +39,26 @@
   <arg name="name_6"                    default="camera_6"/>
   <arg name="frame_id_6"                default="camera_6"/>
   <arg name="camera_info_url_6"         default="/home/pointlaz/catkin_ws/src/avt_vimba_camera/calibrations/calibration_example.yaml"/>
+
+  <!-- Southwest 0 -->
+  <arg name="nameSW_0"                    default="cameraSW_0"/>
+  <arg name="frame_idSW_0"                default="cameraSW_0"/>
+  <arg name="camera_info_urlSW_0"         default="/home/pointlaz/catkin_ws/src/avt_vimba_camera/calibrations/calibration_example.yaml"/>
+
+  <!-- Southwest 1 -->
+  <arg name="nameSW_1"                    default="cameraSW_1"/>
+  <arg name="frame_idSW_1"                default="cameraSW_1"/>
+  <arg name="camera_info_urlSW_1"         default="/home/pointlaz/catkin_ws/src/avt_vimba_camera/calibrations/calibration_example.yaml"/>
+
+  <!-- Southwest 2 -->
+  <arg name="nameSW_2"                    default="cameraSW_2"/>
+  <arg name="frame_idSW_2"                default="cameraSW_2"/>
+  <arg name="camera_info_urlSW_2"         default="/home/pointlaz/catkin_ws/src/avt_vimba_camera/calibrations/calibration_example.yaml"/>
+
+  <!-- Southwest 3 -->
+  <arg name="nameSW_3"                    default="cameraSW_3"/>
+  <arg name="frame_idSW_3"                default="cameraSW_3"/>
+  <arg name="camera_info_urlSW_3"         default="/home/pointlaz/catkin_ws/src/avt_vimba_camera/calibrations/calibration_example.yaml"/>
 
   <!-- Driver parameters, these parameters affect the way the ROS driver works -->
   <arg name="use_measurement_time"      default="false"   doc="Use the measurement time from the camera"/>
@@ -185,6 +205,27 @@
     <param name="name_6"                    value="$(arg name_6)"/>
     <param name="frame_id_6"                value="$(arg frame_id_6)"/>
     <param name="camera_info_url_6"         value="$(arg camera_info_url_6)"/>
+
+    <!-- SouthWest 0-->
+    <param name="nameSW_0"                    value="$(arg nameSW_0)"/>
+    <param name="frame_idSW_0"                value="$(arg frame_idSW_0)"/>
+    <param name="camera_infoSW_url_0"         value="$(arg camera_info_urlSW_0)"/>
+
+    <!-- SouthWest 1-->
+    <param name="nameSW_1"                    value="$(arg nameSW_1)"/>
+    <param name="frame_idSW_1"                value="$(arg frame_idSW_1)"/>
+    <param name="camera_infoSW_url_1"         value="$(arg camera_info_urlSW_1)"/>
+
+    <!-- SouthWest 2-->
+    <param name="nameSW_2"                    value="$(arg nameSW_2)"/>
+    <param name="frame_idSW_2"                value="$(arg frame_idSW_2)"/>
+    <param name="camera_infoSW_url_2"         value="$(arg camera_info_urlSW_2)"/>
+
+    <!-- SouthWest 3-->
+    <param name="nameSW_3"                    value="$(arg nameSW_3)"/>
+    <param name="frame_idSW_3"                value="$(arg frame_idSW_3)"/>
+    <param name="camera_infoSW_url_3"         value="$(arg camera_info_urlSW_3)"/>
+
     <!-- Driver parameters -->
     <param name="use_measurement_time"      value="$(arg use_measurement_time)"/>
     <param name="ptp_offset"                value="$(arg ptp_offset)"/>
@@ -263,6 +304,27 @@
     <param name="debug_image"                                     value="$(arg debug_image)"/>
     <param name="compress_info"                                   value="$(arg compress_info)"/>
 
+    <!-- SouthWest Parameters -->
+    <param name="widthSW"                     value="$(arg widthSW)"/>
+    <param name="heightSW"                    value="$(arg heightSW)"/>
+    <param name="pixel_formatSW"             value="$(arg pixel_formatSW)"/>
+    <param name="gainSW"                     value="$(arg gainSW)"/>
+    <param name="exposureSW"                value="$(arg exposureSW)"/>
+    <param name="acquisition_modeSW"        value="$(arg acquisition_modeSW)"/>
+    <param name="acquisition_rateSW"        value="$(arg acquisition_rateSW)"/>
+    <param name="stream_bytes_per_secondSW" value="$(arg stream_bytes_per_secondSW)"/>
+    <param name="trigger_sourceSW"          value="$(arg trigger_sourceSW)"/>
+    <param name="trigger_modeSW"            value="$(arg trigger_modeSW)"/>
+    <param name="trigger_selectorSW"        value="$(arg trigger_selectorSW)"/>
+    <param name="trigger_activationSW"      value="$(arg trigger_activationSW)"/>
+    <param name="line_selectorSW"           value="$(arg line_selectorSW)"/>
+
+    <param name="saveRAW"                    value="$(arg saveRAW)"/>
+    <param name="saveCoordinate"             value="$(arg saveCoordinate)"/>
+    <param name="laser_line"                 value="$(arg laser_line)"/>
+    <param name="pyramids_sublevels"         value="$(arg pyramids_sublevels)"/>
+    <param name="loGThreshold"               value="$(arg loGThreshold)"/>
+    <param name="upScaleForSubPixelDetection" value="$(arg upScaleForSubPixelDetection)"/>
   </node>
 
   <!-- Prevent to compress data with image transport -->
@@ -332,6 +394,28 @@
     - 'image_transport/theora'
   </rosparam>
   <rosparam ns="/multi_camera/image_raw_6_debug" param="disable_pub_plugins" >
+    - 'image_transport/compressed'
+    - 'image_transport/compressedDepth'
+    - 'image_transport/theora'
+  </rosparam>
+
+  <!-- Prevent to compress data with image transport -->
+  <rosparam ns="/multi_camera/southwest_raw_0" param="disable_pub_plugins" >
+    - 'image_transport/compressed'
+    - 'image_transport/compressedDepth'
+    - 'image_transport/theora'
+  </rosparam>
+  <rosparam ns="/multi_camera/southwest_raw_1" param="disable_pub_plugins" >
+    - 'image_transport/compressed'
+    - 'image_transport/compressedDepth'
+    - 'image_transport/theora'
+  </rosparam>
+  <rosparam ns="/multi_camera/southwest_raw_2" param="disable_pub_plugins" >
+    - 'image_transport/compressed'
+    - 'image_transport/compressedDepth'
+    - 'image_transport/theora'
+  </rosparam>
+  <rosparam ns="/multi_camera/southwest_raw_3" param="disable_pub_plugins" >
     - 'image_transport/compressed'
     - 'image_transport/compressedDepth'
     - 'image_transport/theora'

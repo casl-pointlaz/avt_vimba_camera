@@ -319,7 +319,12 @@ void AvtVimbaCamera::southwest(const FramePtr& vimba_frame_ptr)
    bool useRaw = southwestRawPub_?true:false;
    bool useCoordinate = southwestCoordinatePub_?true:false;
 
-   api_->frameToImageSouthWestPool(vimba_frame_ptr,img,coordinate,useRaw,useCoordinate);
+   railcam::imgproc::LaserDetectionOptions options;
+   options.numLines = laser_line_;
+   options.pyramidsSublevels = pyramids_sublevels_;
+   options.loGThreshold = loGThreshold_;
+   options.upScaleForSubPixelDetection = upScaleForSubPixelDetection_;
+   api_->frameToImageSouthWestPool(vimba_frame_ptr,img,coordinate,useRaw,useCoordinate,options);
 
    if (useRaw)
    {
