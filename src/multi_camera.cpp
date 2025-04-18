@@ -15,7 +15,8 @@ MultiCamera::MultiCamera(ros::NodeHandle& nh, ros::NodeHandle& nhp)
    railcam::imgproc::LaserDetectionOptions ldo{};
    // Set the params
    nhp_.param("camera_qty", camQty_, 1);
-   std::shared_ptr<BS::thread_pool<>>  pool = std::make_shared<BS::thread_pool<>>( 8);
+   nhp_.param("southwest_qty", southWestQty_, 1);
+   std::shared_ptr<BS::thread_pool<>>  pool = std::make_shared<BS::thread_pool<>>( 2*(camQty_+southWestQty_));
    api_ = std::make_shared<AvtVimbaApi>(pool);
    api_->start();
 
@@ -147,7 +148,6 @@ MultiCamera::MultiCamera(ros::NodeHandle& nh, ros::NodeHandle& nhp)
    nhp_.param("southwest_coordinate", publishSouthWestCoordinate_, true);
    if (publishSouthWestCoordinate_ || publishSouthWestRaw_)
    {
-      nhp_.param("southwest_qty", southWestQty_, 1);
       std::string topicNameSouthWestRaw = "southwest_raw_";
       std::string topicNameSouthWestCoordinate = "southwest_coordinate_";
 

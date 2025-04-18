@@ -93,6 +93,7 @@ public:
   int qualityJPG_ = 90;
   void setPixelIntensityPublisher(std::shared_ptr<ros::Publisher> pub) {if(pub) pixel_intensity_pub_ = pub;}
 
+
   //Debug Pupub_blisher
   void setDebugPublisher(std::shared_ptr<image_transport::CameraPublisher> pub)
   {
@@ -101,16 +102,39 @@ public:
   }
 
   //Southwest Publisher
+  bool isSouthWest = false;
   void setSouthwestRawPublisher(std::shared_ptr<image_transport::CameraPublisher> pub)
   {
      if(pub) southwestRawPub_ = pub;
+     isSouthWest  = true;
   }
   void setSouthwestCoordinatePublisher(std::shared_ptr<ros::Publisher> pub)
   {
      if(pub) southwestCoordinatePub_ = pub;
+     isSouthWest  = true;
   }
-
   void southwest(const FramePtr& vimba_frame_ptr);
+  struct SouthwestConfig
+  {
+      int width;
+      int height;
+      std::string pixelFormat;
+      int gain;
+      int exposue;
+      std::string acquistionMode;
+      int acquisitionRate;
+      int stream_byte_per_second;
+      std::string trigger_source;
+      std::string trigger_mode;
+      std::string trigger_selector;
+      std::string trigger_activation;
+
+      //Detection
+      int laser_line;
+      int pyramids_sublevels;
+      float loGThreshold;
+      float upScaleForSubPixelDetection;
+  };
 
 
   void start(const std::string& ip_str, const std::string& guid_str, const std::string& frame_id,
