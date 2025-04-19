@@ -156,11 +156,11 @@
   <arg name="acquisition_modeSW"          default="Continuous"/>
   <arg name="acquisition_rateSW"          default="10"/>
   <arg name="stream_bytes_per_secondSW"   default="55000000"/>
-  <arg name="trigger_sourceSW"            default="Line1"/>
-  <arg name="trigger_modeSW"              default="On"/>
+  <arg name="trigger_sourceSW"            default="Line0"/>
+  <arg name="trigger_modeSW"              default="Off"/>
   <arg name="trigger_selectorSW"          default="FrameStart"/>
   <arg name="trigger_activationSW"        default="RisingEdge"/>
-  <arg name="line_selectorSW"               default="Line0"/>
+  <arg name="line_selectorSW"             default="Line0"/>
 
   <arg name="saveRAW"                     default="true"/>
   <arg name="saveCoordinate"              default="true"/>

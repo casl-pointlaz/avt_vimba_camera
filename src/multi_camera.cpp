@@ -12,7 +12,6 @@ MultiCamera::MultiCamera(ros::NodeHandle& nh, ros::NodeHandle& nhp)
    : nh_(nh), nhp_(nhp), it_(nhp)
 {
 
-   railcam::imgproc::LaserDetectionOptions ldo{};
    // Set the params
    nhp_.param("camera_qty", camQty_, 1);
    nhp_.param("southwest_qty", southWestQty_, 0);

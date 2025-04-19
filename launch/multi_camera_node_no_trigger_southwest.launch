@@ -163,7 +163,7 @@
   <arg name="line_selectorSW"               default="Line0"/>
 
   <arg name="saveRAW"                     default="true"/>
-  <arg name="saveCoordinate"              default="true"/>
+  <arg name="saveCoordinate"              default="false"/>
   <arg name="laser_line"                  default="7"/>
   <arg name="pyramids_sublevels"          default="1"/>
   <arg name="loGThreshold"                default="15.0"/>

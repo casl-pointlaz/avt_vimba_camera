@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.16)
+cmake_minimum_required(VERSION 2.8.3)
 project(avt_vimba_camera)
 
 find_package(catkin REQUIRED COMPONENTS
@@ -19,7 +19,6 @@ find_package(libjpeg-turbo REQUIRED)
 
 
 set(THREADPOOL_INCLUDE_DIR " ${CMAKE_CURRENT_SOURCE_DIR}/include/thread_pool/include")
-set(RAILCAM_INCLUDE_DIR " ${CMAKE_CURRENT_SOURCE_DIR}/pointlaz-railcam/modules/imgproc/include")
 
 set(JETRAW_INCLUDE_DIR " ${CMAKE_CURRENT_SOURCE_DIR}/JetrawWithDPCore-22.02.16.1/include")
 
@@ -48,9 +47,6 @@ catkin_package(
 ###########
 ## Build ##
 ###########
-
-add_subdirectory(pointlaz-railcam)
-
 message(STATUS "=====================${libjpeg-turbo}")
 
         include_directories(
@@ -62,10 +58,10 @@ message(STATUS "=====================${libjpeg-turbo}")
 
 # C++11 support
 include(CheckCXXCompilerFlag)
-CHECK_CXX_COMPILER_FLAG("-std=c++20" COMPILER_SUPPORTS_CXX20)
+CHECK_CXX_COMPILER_FLAG("-std=c++17" COMPILER_SUPPORTS_CXX11)
 CHECK_CXX_COMPILER_FLAG("-std=c++0x" COMPILER_SUPPORTS_CXX0X)
-if(COMPILER_SUPPORTS_CXX20)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++20")
+if(COMPILER_SUPPORTS_CXX11)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
 elseif(COMPILER_SUPPORTS_CXX0X)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
 else()
@@ -82,7 +78,6 @@ function(add_dependencies_and_linkings arg)
       ${catkin_LIBRARIES}
       ${JETRAW_LIBS}
       libjpeg-turbo::turbojpeg
-            railcam::imgproc
       ${CMAKE_CURRENT_SOURCE_DIR}/lib/64bit/libVimbaC.so
       ${CMAKE_CURRENT_SOURCE_DIR}/lib/64bit/libVimbaCPP.so
       ${CMAKE_CURRENT_SOURCE_DIR}/lib/64bit/libVimbaImageTransform.so
@@ -127,7 +122,6 @@ add_executable(multi_camera_node
         src/jpegTurbo.cpp
         )
 add_dependencies_and_linkings(multi_camera_node)
-target_link_libraries(multi_camera_node railcam::imgproc)
 
 # Node added by pointlaz
 add_executable(publish_jpg_to_images_topics
