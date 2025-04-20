@@ -1,17 +1,17 @@
 # cameras_ids.yaml
 # Config file specific for every Scanner. Store the cameras IDs of the Scanner. Is called in multi_camera_node.launch.
 
-camera_qty: 0
-guid_0: "DEV_XXXXXXXXXXXX"
-guid_1: "DEV_XXXXXXXXXXXX"
-guid_2: "DEV_XXXXXXXXXXXX"
-guid_3: "DEV_XXXXXXXXXXXX"
-guid_4: "DEV_XXXXXXXXXXXX"
-guid_5: "DEV_XXXXXXXXXXXX"
-guid_6: "DEV_XXXXXXXXXXXX"
-southwest_qty: 2
+camera_qty: 7
+guid_0: "DEV_1AB22C04E2FE"
+guid_1: "DEV_1AB22C04E2EF"
+guid_2: "DEV_1AB22C04E2F7"
+guid_3: "DEV_1AB22C04E2F0"
+guid_4: "DEV_1AB22C04E2F2"
+guid_5: "DEV_1AB22C051827"
+guid_6: "DEV_1AB22C05183F"
+southwest_qty: 4
 guidSW_0: "DEV_1AB22C04ED7B"
 guidSW_1: "DEV_1AB22C04ED79"
 guidSW_2: "DEV_1AB22C066B5F"
-guidSW_3: "DEV_1AB22C066B64"
+guidSW_3: "DEV_1AB22C066B5E"
 

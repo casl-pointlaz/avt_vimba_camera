@@ -74,8 +74,8 @@
   <arg name="acquisition_mode"          default="Continuous"/>
   <arg name="acquisition_rate"          default="10"/>
   <!-- Trigger -->
-  <arg name="trigger_source"            default="Line1"/>
-  <arg name="trigger_mode"              default="On"/>
+  <arg name="trigger_source"            default="Line0"/>
+  <arg name="trigger_mode"              default="Off"/>
   <arg name="trigger_selector"          default="FrameStart"/>
   <arg name="trigger_activation"        default="RisingEdge"/>
   <arg name="trigger_delay"             default="0.0"/>
