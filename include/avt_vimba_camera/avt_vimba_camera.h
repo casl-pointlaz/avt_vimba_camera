@@ -190,6 +190,7 @@ private:
   void updateGPIOConfig(Config& config);
   void updateUSBGPIOConfig(Config& config);
   void updateIrisConfig(Config& config);
+  void updateCounterAndTimerControlConfig(Config& config);
 
 };
 }  // namespace avt_vimba_camera
