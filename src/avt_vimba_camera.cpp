@@ -37,6 +37,8 @@
 
 #include <signal.h>
 
+#include <numeric>
+
 
 namespace avt_vimba_camera
 {
@@ -143,6 +145,13 @@ void AvtVimbaCamera::start(const std::string& ip_str, const std::string& guid_st
       SP_SET(frame_obs_ptr_,
              new FrameObserver(vimba_camera_ptr_,
                                std::bind(&avt_vimba_camera::AvtVimbaCamera::frameCallback, this, std::placeholders::_1)));       // Modified by pointlaz
+
+      // Create a counter observer for this camera
+      SP_SET(counter_obs_ptr_,
+        new CounterValueObserver(std::bind(&avt_vimba_camera::AvtVimbaCamera::counterCallback, this, std::placeholders::_1)));       // Modified by pointlaz
+      vimba_camera_ptr_->GetFeatureByName("CounterValue", vimba_feature_ptr);
+      vimba_feature_ptr->RegisterObserver(counter_obs_ptr_);
+
       connected_ = true;
   }
 }
@@ -293,9 +302,9 @@ void AvtVimbaCamera::frameCallback(const FramePtr vimba_frame_ptr)
   std::unique_lock<std::mutex> lock(config_mutex_);
   camera_state_ = OK;
   // Call the callback implemented by other classes
-  std::string counterValue;
+  int counterValue;
   getFeatureValue("CounterValue", counterValue);
-  ROS_INFO_STREAM("Counter Value: " << counterValue);
+  ROS_INFO_STREAM(camId_ << ": Counter Value = " << counterValue);
   compress(vimba_frame_ptr);
 }
 
@@ -335,6 +344,19 @@ void AvtVimbaCamera::compress(const FramePtr& vimba_frame_ptr)
             ROS_WARN_STREAM("Function frameToImage returned 0. No image published.");
         }
     }
+}
+
+void AvtVimbaCamera::counterCallback(const FeaturePtr& vimba_feature_ptr)
+{
+  if ( vimba_feature_ptr != NULL )
+  {
+    VmbError_t res;
+    std::string featureName("");
+    res = vimba_feature_ptr->GetDisplayName(featureName);
+    VmbInt64_t counterValue;
+    res = vimba_feature_ptr->GetValue(counterValue);
+    ROS_INFO_STREAM(camId_ << ": " << featureName << " = " << counterValue);
+  }
 }
 
 int AvtVimbaCamera::getSensorWidth()
@@ -798,20 +820,20 @@ void AvtVimbaCamera::updateConfig(Config& config)
   ROS_INFO("--------------------------Updating config:");
   stopImaging();
   ros::Duration(0.5).sleep();
+  updatePixelFormatConfig(config);
+  updateBandwidthConfig(config);
+  updateImageModeConfig(config);
+  updateROIConfig(config);
   updateExposureConfig(config);
   updateGammaConfig(config);
   updateDspsubregionConfig(config);
   updateGainConfig(config);
   updateWhiteBalanceConfig(config);
-  updateImageModeConfig(config);
-  updateROIConfig(config);
-  updateBandwidthConfig(config);
   updateGPIOConfig(config);
   updateUSBGPIOConfig(config);
   updatePtpModeConfig(config);
-  updatePixelFormatConfig(config);
-  updateAcquisitionConfig(config);
   updateIrisConfig(config);
+  updateAcquisitionConfig(config);
   updateCounterAndTimerControlConfig(config);
   config_ = config;
   ROS_INFO("--------------------------config done");
@@ -1136,14 +1158,6 @@ void AvtVimbaCamera::updateImageModeConfig(Config& config)
   {
     configureFeature("DecimationVertical", static_cast<VmbInt64_t>(config.decimation_y), config.decimation_y);
   }
-  if (config.binning_x != config_.binning_x || on_init_)
-  {
-    configureFeature("BinningHorizontal", static_cast<VmbInt64_t>(config.binning_x), config.binning_x);
-  }
-  if (config.binning_y != config_.binning_y || on_init_)
-  {
-    configureFeature("BinningVertical", static_cast<VmbInt64_t>(config.binning_y), config.binning_y);
-  }
   if (config.reverse_x != config_.reverse_x || on_init_)
   {
     configureFeature("ReverseX", static_cast<bool>(config.reverse_x), config.reverse_x);
@@ -1151,6 +1165,14 @@ void AvtVimbaCamera::updateImageModeConfig(Config& config)
   if (config.reverse_y != config_.reverse_y || on_init_)
   {
     configureFeature("ReverseY", static_cast<bool>(config.reverse_y), config.reverse_y);
+  }
+  if (config.binning_x != config_.binning_x || on_init_)
+  {
+    configureFeature("BinningHorizontal", static_cast<VmbInt64_t>(config.binning_x), config.binning_x);
+  }
+  if (config.binning_y != config_.binning_y || on_init_)
+  {
+    configureFeature("BinningVertical", static_cast<VmbInt64_t>(config.binning_y), config.binning_y);
   }
 }
 
@@ -1251,84 +1273,83 @@ void AvtVimbaCamera::updateUSBGPIOConfig(Config& config)
   }
 }
 
- void AvtVimbaCamera::updateCounterAndTimerControlConfig(Config& config)
- {
-    int counterDuration;
-    getFeatureValue("CounterDuration", counterDuration);
-    ROS_INFO_STREAM("CounterDuration: " << counterDuration);
-    setFeatureValue("CounterDuration", 10);
+void AvtVimbaCamera::updateCounterAndTimerControlConfig(Config& config)
+{
+  int counterDuration;
+  getFeatureValue("CounterDuration", counterDuration);
+  ROS_INFO_STREAM("CounterDuration: " << counterDuration);
 
-    std::string counterEventActivation;
-    getFeatureValue("CounterEventActivation", counterEventActivation);
-    ROS_INFO_STREAM("CounterEventActivation: " << counterEventActivation);
-    setFeatureValue("CounterEventActivation", "RisingEdge");
+  setFeatureValue("CounterDuration", std::numeric_limits<VmbInt32_t>::max());
 
-    std::string counterEventSource;
-    getFeatureValue("CounterEventSource", counterEventSource);
-    ROS_INFO_STREAM("CounterEventSource: " << counterEventSource);
-    setFeatureValue("CounterEventSource", "Line0");
+  std::string counterEventActivation;
+  getFeatureValue("CounterEventActivation", counterEventActivation);
+  ROS_INFO_STREAM("CounterEventActivation: " << counterEventActivation);
+  setFeatureValue("CounterEventActivation", "RisingEdge");
 
-    std::string counterResetActivation;
-    getFeatureValue("CounterResetActivation", counterResetActivation);
-    ROS_INFO_STREAM("CounterResetActivation: " << counterResetActivation);
-    setFeatureValue("CounterResetActivation", "RisingEdge");
+  std::string counterEventSource;
+  getFeatureValue("CounterEventSource", counterEventSource);
+  ROS_INFO_STREAM("CounterEventSource: " << counterEventSource);
+  setFeatureValue("CounterEventSource", "Line0");
 
-    std::string counterResetSource;
-    getFeatureValue("CounterResetSource", counterResetSource);
-    ROS_INFO_STREAM("CounterResetSource: " << counterResetSource);
-    setFeatureValue("CounterResetSource", "Off");
+  std::string counterResetActivation;
+  getFeatureValue("CounterResetActivation", counterResetActivation);
+  ROS_INFO_STREAM("CounterResetActivation: " << counterResetActivation);
+  setFeatureValue("CounterResetActivation", "RisingEdge");
 
-    std::string counterSelector;
-    getFeatureValue("CounterSelector", counterSelector);
-    ROS_INFO_STREAM("CounterSelector: " << counterSelector);
-    setFeatureValue("CounterSelector", "Counter0");
+  std::string counterResetSource;
+  getFeatureValue("CounterResetSource", counterResetSource);
+  ROS_INFO_STREAM("CounterResetSource: " << counterResetSource);
+  setFeatureValue("CounterResetSource", "SoftwareSignal0");
 
-    std::string counterStatus;
-    getFeatureValue("CounterStatus", counterStatus);
-    ROS_INFO_STREAM("CounterStatus: " << counterStatus);
+  std::string counterSelector;
+  getFeatureValue("CounterSelector", counterSelector);
+  ROS_INFO_STREAM("CounterSelector: " << counterSelector);
+  setFeatureValue("CounterSelector", "Counter0");
 
-    std::string counterTriggerActivation;
-    getFeatureValue("CounterTriggerActivation", counterTriggerActivation);
-    ROS_INFO_STREAM("CounterTriggerActivation: " << counterTriggerActivation);
-    setFeatureValue("CounterTriggerActivation", "RisingEdge");
+  std::string counterStatus;
+  getFeatureValue("CounterStatus", counterStatus);
+  ROS_INFO_STREAM("CounterStatus: " << counterStatus);
 
-    std::string counterTriggerSource;
-    getFeatureValue("CounterTriggerSource", counterTriggerSource);
-    ROS_INFO_STREAM("CounterTriggerSource: " << counterTriggerSource);
-    setFeatureValue("CounterTriggerSource", "Line0");
+  std::string counterTriggerActivation;
+  getFeatureValue("CounterTriggerActivation", counterTriggerActivation);
+  ROS_INFO_STREAM("CounterTriggerActivation: " << counterTriggerActivation);
+  setFeatureValue("CounterTriggerActivation", "RisingEdge");
 
-    std::string counterValue;
-    getFeatureValue("CounterValue", counterValue);
-    ROS_INFO_STREAM("CounterValue: " << counterValue);
+  std::string counterTriggerSource;
+  getFeatureValue("CounterTriggerSource", counterTriggerSource);
+  ROS_INFO_STREAM("CounterTriggerSource: " << counterTriggerSource);
+  setFeatureValue("CounterTriggerSource", "Line0");
 
-    std::string counterValueAtReset;
-    getFeatureValue("CounterValueAtReset", counterValueAtReset);
-    ROS_INFO_STREAM("CounterValueAtReset: " << counterValueAtReset);
+  std::string counterValue;
+  getFeatureValue("CounterValue", counterValue);
+  ROS_INFO_STREAM("CounterValue: " << counterValue);
 
-    std::string timerDelay;
-    getFeatureValue("TimerDelay", timerDelay);
-    ROS_INFO_STREAM(": " << timerDelay);
+  std::string counterValueAtReset;
+  getFeatureValue("CounterValueAtReset", counterValueAtReset);
+  ROS_INFO_STREAM("CounterValueAtReset: " << counterValueAtReset);
 
-    std::string timerDuration;
-    getFeatureValue("TimerDuration", timerDuration);
-    ROS_INFO_STREAM(": " << timerDelay);
+  std::string timerDelay;
+  getFeatureValue("TimerDelay", timerDelay);
+  ROS_INFO_STREAM(": " << timerDelay);
 
-    std::string timerSelector;
-    getFeatureValue("TimerSelector", timerSelector);
-    ROS_INFO_STREAM("TimerSelector: " << timerSelector);
+  std::string timerDuration;
+  getFeatureValue("TimerDuration", timerDuration);
+  ROS_INFO_STREAM(": " << timerDelay);
 
-    std::string timerStatus;
-    getFeatureValue("TimerStatus", timerStatus);
-    ROS_INFO_STREAM("TimerStatus: " << timerStatus);
+  std::string timerSelector;
+  getFeatureValue("TimerSelector", timerSelector);
+  ROS_INFO_STREAM("TimerSelector: " << timerSelector);
 
-    std::string timerTriggerActivation;
-    getFeatureValue("TimerTriggerActivation", timerTriggerActivation);
-    ROS_INFO_STREAM("TimerTriggerActivation: " << timerTriggerActivation);
+  std::string timerStatus;
+  getFeatureValue("TimerStatus", timerStatus);
+  ROS_INFO_STREAM("TimerStatus: " << timerStatus);
 
-    std::string timerTriggerSource;
-    getFeatureValue("TimerTriggerSource", timerTriggerSource);
-    ROS_INFO_STREAM("TimerTriggerSource: " << timerTriggerSource);
- }
+  std::string timerTriggerActivation;
+  getFeatureValue("TimerTriggerActivation", timerTriggerActivation);
+  ROS_INFO_STREAM("TimerTriggerActivation: " << timerTriggerActivation);
 
-
+  std::string timerTriggerSource;
+  getFeatureValue("TimerTriggerSource", timerTriggerSource);
+  ROS_INFO_STREAM("TimerTriggerSource: " << timerTriggerSource);
+}
 };  // namespace avt_vimba_camera
