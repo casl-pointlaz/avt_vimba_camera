@@ -117,6 +117,7 @@ add_executable(multi_camera_node
         src/nodes/multi_camera_node.cpp
         src/multi_camera.cpp
         src/avt_vimba_camera.cpp
+        src/counter_value_observer.cpp
         src/frame_observer.cpp
         src/jetraw.cpp
         src/jpegTurbo.cpp

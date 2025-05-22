@@ -36,6 +36,7 @@
 #include <VimbaCPP/Include/VimbaCPP.h>
 
 #include <avt_vimba_camera/AvtVimbaCameraConfig.h>
+#include <avt_vimba_camera/counter_value_observer.h>
 #include <avt_vimba_camera/frame_observer.h>
 #include <avt_vimba_camera/avt_vimba_api.h>
 #include <camera_info_manager/camera_info_manager.h>
@@ -53,6 +54,7 @@
 
 using AVT::VmbAPI::CameraPtr;
 using AVT::VmbAPI::FramePtr;
+using AVT::VmbAPI::IFeatureObserverPtr;
 using AVT::VmbAPI::IFrameObserverPtr;
 using AVT::VmbAPI::VimbaSystem;
 
@@ -134,6 +136,7 @@ public:
       stop();
       if(frame_obs_ptr_) frame_obs_ptr_.reset();
       if (vimba_frame_ptr_) vimba_frame_ptr_.reset();
+      if (vimba_feature_ptr) vimba_feature_ptr.reset();
       if (vimba_camera_ptr_) vimba_camera_ptr_.reset();
       std::cout<< "cam clean finish" << std::endl;
   }
@@ -145,10 +148,13 @@ private:
   std::shared_ptr<AvtVimbaApi> api_;
   // IFrame Observer
   SP_DECL(FrameObserver) frame_obs_ptr_;
+  IFeatureObserverPtr counter_obs_ptr_;
   // The currently streaming camera
   CameraPtr vimba_camera_ptr_;
   // Current frame
   FramePtr vimba_frame_ptr_;
+  // Counter Value Feature
+  FeaturePtr vimba_feature_ptr;
   // Mutex
   std::mutex config_mutex_;
 
@@ -164,6 +170,7 @@ private:
 
   compressCallbackFunc userFrameCallback;
   void frameCallback(const FramePtr vimba_frame_ptr);       // Modified by pointlaz. camId as parameter
+  void counterCallback(const FeaturePtr& vimba_feature_ptr);
 
   template <typename T>
   VmbErrorType setFeatureValue(const std::string& feature_str, const T& val);
