@@ -14,6 +14,7 @@
   <maintainer email="software@autonomoustuff.com">AutonomouStuff Software Team</maintainer>
 
   <buildtool_depend>catkin</buildtool_depend>
+  <build_depend>message_generation</build_depend>
   <depend>camera_info_manager</depend>
   <depend>diagnostic_updater</depend>
   <depend>dynamic_reconfigure</depend>
@@ -26,6 +27,7 @@
 
   <exec_depend>image_proc</exec_depend>
   <exec_depend>stereo_image_proc</exec_depend>
+  <exec_depend>message_runtime</exec_depend>
 
   <export>
     <nodelet plugin="${prefix}/plugins.xml" />
