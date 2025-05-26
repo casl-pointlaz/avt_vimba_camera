@@ -134,6 +134,7 @@ public:
       stop();
       if(frame_obs_ptr_) frame_obs_ptr_.reset();
       if (vimba_frame_ptr_) vimba_frame_ptr_.reset();
+      if (counter_value_feature_ptr) counter_value_feature_ptr.reset();
       if (vimba_camera_ptr_) vimba_camera_ptr_.reset();
       std::cout<< "cam clean finish" << std::endl;
   }
@@ -149,6 +150,8 @@ private:
   CameraPtr vimba_camera_ptr_;
   // Current frame
   FramePtr vimba_frame_ptr_;
+  // CounterValue feature
+  FeaturePtr counter_value_feature_ptr;
   // Mutex
   std::mutex config_mutex_;
 
