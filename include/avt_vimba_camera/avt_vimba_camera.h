@@ -43,6 +43,7 @@
 #include <sensor_msgs/Image.h>
 #include <sensor_msgs/CompressedImage.h>
 #include <sensor_msgs/CameraInfo.h>
+#include <std_msgs/Int8.h>
 #include <std_msgs/UInt8.h>
 #include <cv_bridge/cv_bridge.h>
 #include <thread>
@@ -85,6 +86,8 @@ public:
   std::shared_ptr<image_transport::CameraPublisher> debugPub_;
   std::shared_ptr<ros::Publisher> pixel_intensity_pub_;
 
+  // Subscribers
+  ros::Subscriber scanner_state_sub_;
 
   //Compressing
   CompressionType compressionType_ = CompressionType::Jpeg;
@@ -140,6 +143,7 @@ public:
   }
 
     void compress(const FramePtr& vimba_frame_ptr);
+    void scannerStateCallback(const std_msgs::Int8::ConstPtr& msg);
 
     Config config_;
 private:
