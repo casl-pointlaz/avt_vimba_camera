@@ -143,6 +143,7 @@ void AvtVimbaCamera::start(const std::string& ip_str, const std::string& guid_st
       SP_SET(frame_obs_ptr_,
              new FrameObserver(vimba_camera_ptr_,
                                std::bind(&avt_vimba_camera::AvtVimbaCamera::frameCallback, this, std::placeholders::_1)));       // Modified by pointlaz
+      vimba_camera_ptr_->GetFeatureByName("CounterValue", counter_value_feature_ptr);
       connected_ = true;
   }
 }
@@ -293,9 +294,9 @@ void AvtVimbaCamera::frameCallback(const FramePtr vimba_frame_ptr)
   std::unique_lock<std::mutex> lock(config_mutex_);
   camera_state_ = OK;
   // Call the callback implemented by other classes
-  std::string counterValue;
-  getFeatureValue("CounterValue", counterValue);
-  ROS_INFO_STREAM("Counter Value: " << counterValue);
+  VmbInt64_t counterValue;
+  counter_value_feature_ptr->GetValue(counterValue);
+  ROS_INFO_STREAM("[frameCallback] Camera" << camId_ << ": Counter Value = " << counterValue);
   compress(vimba_frame_ptr);
 }
 
