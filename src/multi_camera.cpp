@@ -54,6 +54,7 @@ MultiCamera::MultiCamera(ros::NodeHandle& nh, ros::NodeHandle& nhp)
 
    guid_.resize(camQty_);
    pub_.resize(camQty_);
+   sub_.resize(camQty_);
    camera_info_url_.resize(camQty_);
    frame_id_.resize(camQty_);
    cam_.resize(camQty_);
@@ -112,6 +113,7 @@ MultiCamera::MultiCamera(ros::NodeHandle& nh, ros::NodeHandle& nhp)
       pub_[i].reset(new image_transport::CameraPublisher);
       *pub_[i] = it_.advertiseCamera(topicName + std::to_string(i), 1);
 
+
       nhp_.param("guid_" + std::to_string(i), guid_[i], std::string(""));
       nhp_.param("camera_info_url_" + std::to_string(i), camera_info_url_[i], std::string(""));
       nhp_.param("frame_id_" + std::to_string(i), frame_id_[i], std::string(""));
@@ -121,8 +123,10 @@ MultiCamera::MultiCamera(ros::NodeHandle& nh, ros::NodeHandle& nhp)
       nhp_.param("ptp_offset", ptp_offset_, 0);
 
       ROS_INFO("-------------New Cam");
-      std::shared_ptr<AvtVimbaCamera>
-         cam = std::shared_ptr<AvtVimbaCamera>(new AvtVimbaCamera(frame_id_[i], i, api_, pub_[i]));
+      std::shared_ptr<AvtVimbaCamera> cam = std::make_shared<AvtVimbaCamera>(frame_id_[i], i, api_, pub_[i]);
+      // TODO Test if this really work
+      sub_[i] = std::make_shared<ros::Subscriber>(nh_.subscribe("/scanner_state", 10, &AvtVimbaCamera::scannerStateCallback, cam.get()));
+
       if (calculate_pixel_intensity_)
       {
          ROS_INFO("-------------Color Intensity");
