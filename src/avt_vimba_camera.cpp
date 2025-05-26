@@ -145,6 +145,7 @@ void AvtVimbaCamera::start(const std::string& ip_str, const std::string& guid_st
                                std::bind(&avt_vimba_camera::AvtVimbaCamera::frameCallback, this, std::placeholders::_1)));       // Modified by pointlaz
 
       vimba_camera_ptr_->GetFeatureByName("CounterValue", counter_value_feature_ptr);
+      vimba_camera_ptr_->GetFeatureByName("CounterReset", counter_reset_feature_ptr);
       connected_ = true;
   }
 }
@@ -341,8 +342,8 @@ void AvtVimbaCamera::compress(const FramePtr& vimba_frame_ptr)
 
 void AvtVimbaCamera::scannerStateCallback(const std_msgs::Int8::ConstPtr& msg)
 {
-  // TODO Reset CounterValue here
-  ROS_INFO("[counterResetCallback] Camera %d", camId_);
+  ROS_INFO("[scannerStateCallback] Camera %d", camId_);
+  counter_reset_feature_ptr->RunCommand();
 }
 
 int AvtVimbaCamera::getSensorWidth()
