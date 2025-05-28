@@ -1283,7 +1283,7 @@ void AvtVimbaCamera::updateCounterControlConfig(Config& config)
   setFeatureValue("CounterEventActivation", "RisingEdge");
 
   // Selects the event to increment the counter.
-  setFeatureValue("CounterEventSource", "Line0");
+  setFeatureValue("CounterEventSource", "Line1");
 
   // Selects the event to reset the counter.
   setFeatureValue("CounterResetSource", "Off");
@@ -1295,7 +1295,7 @@ void AvtVimbaCamera::updateCounterControlConfig(Config& config)
   setFeatureValue("CounterTriggerActivation", "RisingEdge");
 
   // Selects the event to trigger the counter.
-  setFeatureValue("CounterTriggerSource", "Line0");
+  setFeatureValue("CounterTriggerSource", "Line1");
 }
 
 
