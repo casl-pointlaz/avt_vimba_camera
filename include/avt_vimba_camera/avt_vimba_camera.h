@@ -83,11 +83,9 @@ public:
 
  //Publishers
   std::shared_ptr<image_transport::CameraPublisher> pub_;
-  std::shared_ptr<image_transport::CameraPublisher> debugPub_;
+  std::shared_ptr<image_transport::CameraPublisher> debug_pub_;
   std::shared_ptr<ros::Publisher> pixel_intensity_pub_;
-
-  // Subscribers
-  ros::Subscriber scanner_state_sub_;
+  std::shared_ptr<ros::Publisher> camera_trigger_count_pub_;
 
   //Compressing
   CompressionType compressionType_ = CompressionType::Jpeg;
@@ -98,7 +96,15 @@ public:
   void setDebugPublisher(std::shared_ptr<image_transport::CameraPublisher> pub)
   {
       ROS_WARN("DEBUG PUB ACTIVATED WILL SLOW DOWN PROCESSING BUT PUBLISH RGB IMAGES");
-      if(pub) debugPub_ = pub;
+      if(pub) debug_pub_ = pub;
+  }
+
+  void setCameraTriggerCountPublisher(std::shared_ptr<ros::Publisher> pub)
+  {
+    if (pub)
+    {
+      camera_trigger_count_pub_ = pub;
+    }
   }
 
 

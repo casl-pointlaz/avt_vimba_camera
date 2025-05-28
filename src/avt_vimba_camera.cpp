@@ -32,6 +32,7 @@
 
 #include <avt_vimba_camera/avt_vimba_camera.h>
 #include <avt_vimba_camera/avt_vimba_api.h>
+#include "avt_vimba_camera/CameraTriggerCount.h"
 
 #include <ros/ros.h>
 
@@ -296,19 +297,15 @@ void AvtVimbaCamera::frameCallback(const FramePtr vimba_frame_ptr)
   std::unique_lock<std::mutex> lock(config_mutex_);
   camera_state_ = OK;
   // Call the callback implemented by other classes
-  VmbInt64_t counterValue;
-  counter_value_feature_ptr->GetValue(counterValue);
-  ROS_INFO_STREAM("[frameCallback] Camera" << camId_ << ": Counter Value = " << counterValue);
   compress(vimba_frame_ptr);
 }
 
 void AvtVimbaCamera::compress(const FramePtr& vimba_frame_ptr)
 {
-    ros::Time ros_time = ros::Time::now();
-    if (pub_->getNumSubscribers() >= 0)
+    if (pub_->getNumSubscribers() > 0)
     {
-        sensor_msgs::Image img;
-        sensor_msgs::Image debugImg;
+        VmbInt64_t counterValue;
+        counter_value_feature_ptr->GetValue(counterValue);
 
         if (pixel_intensity_pub_)
         {
@@ -319,18 +316,33 @@ void AvtVimbaCamera::compress(const FramePtr& vimba_frame_ptr)
           }
         }
 
+        VmbUint64_t timestamp;
+        vimba_frame_ptr->GetTimestamp(timestamp);
+
+        std_msgs::Header header;
+        header.stamp.fromNSec(timestamp);
+        header.frame_id = frame_id_;
+
+        sensor_msgs::CameraInfo ci;
+        ci.header = header;
+        sensor_msgs::Image img;
+        img.header = header;
+        sensor_msgs::Image debugImg;
+        debugImg.header = header;
+
         if (api_->frameToImagePool(vimba_frame_ptr, img, debugImg))
         {
-            sensor_msgs::CameraInfo ci;
-            // Note: getCameraInfo() doesn't fill in header frame_id or stamp
-            ci.header.frame_id = frame_id_;
-            ci.header.stamp = ros_time;
-            img.header.stamp = ci.header.stamp;
-
             pub_->publish(img, ci);
-            if (debugPub_)
+
+            CameraTriggerCount triggerCount;
+            triggerCount.header = header;
+            triggerCount.count = counterValue;
+
+            camera_trigger_count_pub_->publish(triggerCount);
+
+            if (debug_pub_)
             {
-                debugPub_->publish(debugImg,ci);
+                debug_pub_->publish(debugImg, ci);
             }
         }
         else
