@@ -128,7 +128,7 @@ MultiCamera::MultiCamera(ros::NodeHandle& nh, ros::NodeHandle& nhp)
       ROS_INFO("-------------New Cam");
       std::shared_ptr<AvtVimbaCamera> cam = std::make_shared<AvtVimbaCamera>(frame_id_[i], i, api_, pub_[i]);
 
-      camera_trigger_count_pub_[i] = std::make_shared<ros::Publisher>(nh_.advertise<CameraTriggerCount>(nhp_.resolveName("trigger_count"), 100));
+      camera_trigger_count_pub_[i] = std::make_shared<ros::Publisher>(nh_.advertise<CameraTriggerCount>(nhp_.resolveName("trigger_count"), 700));
       cam->setCameraTriggerCountPublisher(camera_trigger_count_pub_[i]);
 
       scanner_state_sub_[i] = std::make_shared<ros::Subscriber>(nh_.subscribe("/scanner_state", 1, &AvtVimbaCamera::scannerStateCallback, cam.get()));
