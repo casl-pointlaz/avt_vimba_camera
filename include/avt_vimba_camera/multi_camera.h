@@ -71,7 +71,7 @@ namespace avt_vimba_camera
         std::vector<std::shared_ptr<image_transport::CameraPublisher>> debug_pub_;
         std::vector<std::shared_ptr<ros::Publisher>> pixel_intensity_pub_;
         std::vector<std::shared_ptr<ros::Publisher>> camera_trigger_count_pub_;
-        std::vector<std::shared_ptr<ros::Subscriber>> scanner_state_sub_;
+        ros::Subscriber scanner_state_sub_;
 
         // Dynamic reconfigure
         typedef avt_vimba_camera::AvtVimbaCameraConfig Config;
@@ -82,6 +82,7 @@ namespace avt_vimba_camera
         Config camera_config_;
 
         void compressCallback(const FramePtr& ,const int camId=0);
+        void scannerStateCallback(const std_msgs::Int8::ConstPtr& msg);
         void configure(Config& newconfig, uint32_t level);
 
     };

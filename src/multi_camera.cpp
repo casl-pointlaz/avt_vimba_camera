@@ -13,8 +13,6 @@ namespace avt_vimba_camera
 MultiCamera::MultiCamera(ros::NodeHandle& nh, ros::NodeHandle& nhp)
    : nh_(nh), nhp_(nhp), it_(nhp)
 {
-
-
    // Set the params
    nhp_.param("camera_qty", camQty_, 1);
    std::shared_ptr<BS::thread_pool<>>  pool = std::make_shared<BS::thread_pool<>>(camQty_ * 2);
@@ -57,7 +55,6 @@ MultiCamera::MultiCamera(ros::NodeHandle& nh, ros::NodeHandle& nhp)
 
    guid_.resize(camQty_);
    pub_.resize(camQty_);
-   scanner_state_sub_.resize(camQty_);
    camera_info_url_.resize(camQty_);
    frame_id_.resize(camQty_);
    cam_.resize(camQty_);
@@ -131,8 +128,6 @@ MultiCamera::MultiCamera(ros::NodeHandle& nh, ros::NodeHandle& nhp)
       camera_trigger_count_pub_[i] = std::make_shared<ros::Publisher>(nh_.advertise<CameraTriggerCount>(nhp_.resolveName("trigger_count"), 700));
       cam->setCameraTriggerCountPublisher(camera_trigger_count_pub_[i]);
 
-      scanner_state_sub_[i] = std::make_shared<ros::Subscriber>(nh_.subscribe("/scanner_state", 1, &AvtVimbaCamera::scannerStateCallback, cam.get()));
-
       if (calculate_pixel_intensity_)
       {
          ROS_INFO("-------------Color Intensity");
@@ -149,6 +144,8 @@ MultiCamera::MultiCamera(ros::NodeHandle& nh, ros::NodeHandle& nhp)
       }
       cam_[i] = cam;
    }
+
+   scanner_state_sub_ = nh_.subscribe("/scanner_state", 1, &MultiCamera::scannerStateCallback, this);
 
    ROS_INFO("-------------Reconfig");
    reconfigure_server_.setCallback(
@@ -167,12 +164,20 @@ MultiCamera::~MultiCamera()
    debug_pub_.clear();
    pixel_intensity_pub_.clear();
    camera_trigger_count_pub_.clear();
-   scanner_state_sub_.clear();
    reconfigure_server_.clearCallback();
    std::cout<< "multi clean finish" << std::endl;
 }
 
-
+void MultiCamera::scannerStateCallback(const std_msgs::Int8::ConstPtr& msg)
+{
+  for (const auto &cam : cam_)
+  {
+      if(cam)
+      {
+         cam->resetCounter();
+      }
+  }
+}
 
 /** Dynamic reconfigure callback
  *
