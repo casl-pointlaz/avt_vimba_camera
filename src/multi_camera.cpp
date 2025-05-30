@@ -1,6 +1,9 @@
 /// Created by pointlaz
 
 #include <avt_vimba_camera/multi_camera.h>
+#include "avt_vimba_camera/CameraTriggerCount.h"
+
+
 #include "BS_thread_pool.hpp"
 
 #define DEBUG_PRINTS 1
@@ -10,8 +13,6 @@ namespace avt_vimba_camera
 MultiCamera::MultiCamera(ros::NodeHandle& nh, ros::NodeHandle& nhp)
    : nh_(nh), nhp_(nhp), it_(nhp)
 {
-
-
    // Set the params
    nhp_.param("camera_qty", camQty_, 1);
    std::shared_ptr<BS::thread_pool<>>  pool = std::make_shared<BS::thread_pool<>>(camQty_ * 2);
@@ -58,6 +59,7 @@ MultiCamera::MultiCamera(ros::NodeHandle& nh, ros::NodeHandle& nhp)
    frame_id_.resize(camQty_);
    cam_.resize(camQty_);
    name_.resize(camQty_);
+   camera_trigger_count_pub_.resize(camQty_);
 
    if(calculate_pixel_intensity_)
    {
@@ -99,7 +101,7 @@ MultiCamera::MultiCamera(ros::NodeHandle& nh, ros::NodeHandle& nhp)
    if (debugImage_)
    {
       api_->activateDebugImage();
-      debugPub_.resize(camQty_);
+      debug_pub_.resize(camQty_);
    }
 
    if (compressInfo_)
@@ -121,24 +123,29 @@ MultiCamera::MultiCamera(ros::NodeHandle& nh, ros::NodeHandle& nhp)
       nhp_.param("ptp_offset", ptp_offset_, 0);
 
       ROS_INFO("-------------New Cam");
-      std::shared_ptr<AvtVimbaCamera>
-         cam = std::shared_ptr<AvtVimbaCamera>(new AvtVimbaCamera(frame_id_[i], i, api_, pub_[i]));
+      std::shared_ptr<AvtVimbaCamera> cam = std::make_shared<AvtVimbaCamera>(frame_id_[i], i, api_, pub_[i]);
+
+      camera_trigger_count_pub_[i] = std::make_shared<ros::Publisher>(nh_.advertise<CameraTriggerCount>(nhp_.resolveName("trigger_count"), 700));
+      cam->setCameraTriggerCountPublisher(camera_trigger_count_pub_[i]);
+
       if (calculate_pixel_intensity_)
       {
          ROS_INFO("-------------Color Intensity");
          pixel_intensity_pub_[i].reset(new ros::Publisher);
-         *pixel_intensity_pub_[i] = nh_.advertise<std_msgs::UInt8>("/multi_camera/pixel_intensity_" + std::to_string(i), 1);
+         *pixel_intensity_pub_[i] = nh_.advertise<std_msgs::UInt8>(nhp_.resolveName("pixel_intensity_" + std::to_string(i)), 1);
          cam->setPixelIntensityPublisher(pixel_intensity_pub_[i]);
       }
       if (debugImage_)
       {
          ROS_INFO("-------------Debug Image Publisher");
-         debugPub_[i].reset(new image_transport::CameraPublisher);
-         *debugPub_[i] = it_.advertiseCamera(topicName + std::to_string(i)+"_debug", 1);
-         cam->setDebugPublisher(debugPub_[i]);
+         debug_pub_[i].reset(new image_transport::CameraPublisher);
+         *debug_pub_[i] = it_.advertiseCamera(topicName + std::to_string(i)+ "_debug", 1);
+         cam->setDebugPublisher(debug_pub_[i]);
       }
       cam_[i] = cam;
    }
+
+   scanner_state_sub_ = nh_.subscribe("/scanner_state", 1, &MultiCamera::scannerStateCallback, this);
 
    ROS_INFO("-------------Reconfig");
    reconfigure_server_.setCallback(
@@ -153,13 +160,24 @@ MultiCamera::~MultiCamera()
 {
    cam_.clear();
    if(api_)api_.reset();
-        pub_.clear();
+   pub_.clear();
+   debug_pub_.clear();
    pixel_intensity_pub_.clear();
+   camera_trigger_count_pub_.clear();
    reconfigure_server_.clearCallback();
    std::cout<< "multi clean finish" << std::endl;
 }
 
-
+void MultiCamera::scannerStateCallback(const std_msgs::Int8::ConstPtr& msg)
+{
+  for (const auto &cam : cam_)
+  {
+      if(cam)
+      {
+         cam->resetCounter();
+      }
+  }
+}
 
 /** Dynamic reconfigure callback
  *

@@ -32,6 +32,7 @@
 
 #include <avt_vimba_camera/avt_vimba_camera.h>
 #include <avt_vimba_camera/avt_vimba_api.h>
+#include "avt_vimba_camera/CameraTriggerCount.h"
 
 #include <ros/ros.h>
 
@@ -143,6 +144,9 @@ void AvtVimbaCamera::start(const std::string& ip_str, const std::string& guid_st
       SP_SET(frame_obs_ptr_,
              new FrameObserver(vimba_camera_ptr_,
                                std::bind(&avt_vimba_camera::AvtVimbaCamera::frameCallback, this, std::placeholders::_1)));       // Modified by pointlaz
+
+      vimba_camera_ptr_->GetFeatureByName("CounterValue", counter_value_feature_ptr);
+      vimba_camera_ptr_->GetFeatureByName("CounterReset", counter_reset_feature_ptr);
       connected_ = true;
   }
 }
@@ -298,11 +302,10 @@ void AvtVimbaCamera::frameCallback(const FramePtr vimba_frame_ptr)
 
 void AvtVimbaCamera::compress(const FramePtr& vimba_frame_ptr)
 {
-    ros::Time ros_time = ros::Time::now();
-    if (pub_->getNumSubscribers() >= 0)
+    if (pub_->getNumSubscribers() > 0)
     {
-        sensor_msgs::Image img;
-        sensor_msgs::Image debugImg;
+        VmbInt64_t counterValue;
+        counter_value_feature_ptr->GetValue(counterValue);
 
         if (pixel_intensity_pub_)
         {
@@ -313,18 +316,33 @@ void AvtVimbaCamera::compress(const FramePtr& vimba_frame_ptr)
           }
         }
 
+        VmbUint64_t timestamp;
+        vimba_frame_ptr->GetTimestamp(timestamp);
+
+        std_msgs::Header header;
+        header.stamp.fromNSec(timestamp);
+        header.frame_id = frame_id_;
+
+        sensor_msgs::CameraInfo ci;
+        ci.header = header;
+        sensor_msgs::Image img;
+        img.header = header;
+        sensor_msgs::Image debugImg;
+        debugImg.header = header;
+
         if (api_->frameToImagePool(vimba_frame_ptr, img, debugImg))
         {
-            sensor_msgs::CameraInfo ci;
-            // Note: getCameraInfo() doesn't fill in header frame_id or stamp
-            ci.header.frame_id = frame_id_;
-            ci.header.stamp = ros_time;
-            img.header.stamp = ci.header.stamp;
-
             pub_->publish(img, ci);
-            if (debugPub_)
+
+            CameraTriggerCount triggerCount;
+            triggerCount.header = header;
+            triggerCount.count = counterValue;
+
+            camera_trigger_count_pub_->publish(triggerCount);
+
+            if (debug_pub_)
             {
-                debugPub_->publish(debugImg,ci);
+                debug_pub_->publish(debugImg, ci);
             }
         }
         else
@@ -332,6 +350,11 @@ void AvtVimbaCamera::compress(const FramePtr& vimba_frame_ptr)
             ROS_WARN_STREAM("Function frameToImage returned 0. No image published.");
         }
     }
+}
+
+void AvtVimbaCamera::resetCounter() const
+{
+  counter_reset_feature_ptr->RunCommand();
 }
 
 int AvtVimbaCamera::getSensorWidth()
@@ -809,6 +832,7 @@ void AvtVimbaCamera::updateConfig(Config& config)
   updatePixelFormatConfig(config);
   updateAcquisitionConfig(config);
   updateIrisConfig(config);
+  updateCounterControlConfig(config);
   config_ = config;
   ROS_INFO("--------------------------config done");
 }
@@ -1245,6 +1269,32 @@ void AvtVimbaCamera::updateUSBGPIOConfig(Config& config)
   {
     configureFeature("LineMode", config.line_mode, config.line_mode);
   }
+}
+
+void AvtVimbaCamera::updateCounterControlConfig(Config& config)
+{
+  // Controls the period of time until a CounterEnd event is generated, the
+  // CounterActive signal becomes inactive, and the counter is stopped.
+  setFeatureValue("CounterDuration", std::numeric_limits<VmbInt32_t>::max());
+
+  // Selects the edge type of the electrical signal related to the event defined by
+  // CounterEventSource to increment the counter.
+  setFeatureValue("CounterEventActivation", "RisingEdge");
+
+  // Selects the event to increment the counter.
+  setFeatureValue("CounterEventSource", "Line0");
+
+  // Selects the event to reset the counter.
+  setFeatureValue("CounterResetSource", "Off");
+
+  // Selects the counter to configure.
+  setFeatureValue("CounterSelector", "Counter0");
+
+  // Selects the electrical signal level of the trigger to activate the counter.
+  setFeatureValue("CounterTriggerActivation", "RisingEdge");
+
+  // Selects the event to trigger the counter.
+  setFeatureValue("CounterTriggerSource", "Line0");
 }
 
 

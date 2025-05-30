@@ -12,6 +12,7 @@ find_package(catkin REQUIRED COMPONENTS
   sensor_msgs
   std_msgs
   nodelet
+  message_generation
 )
 
 set(CMAKE_PREFIX_PATH "/opt/libjpeg-turbo/lib64/cmake/libjpeg-turbo/")
@@ -39,9 +40,19 @@ generate_dynamic_reconfigure_options(
         cfg/AvtVimbaCamera.cfg
 )
 
+add_message_files(
+    FILES
+    CameraTriggerCount.msg
+)
+
+generate_messages(
+    DEPENDENCIES
+    std_msgs
+)
+
 catkin_package(
   INCLUDE_DIRS include
-  CATKIN_DEPENDS camera_info_manager diagnostic_updater dynamic_reconfigure image_transport roscpp sensor_msgs std_msgs
+  CATKIN_DEPENDS camera_info_manager diagnostic_updater dynamic_reconfigure image_transport roscpp sensor_msgs std_msgs message_runtime
 )
 
 ###########
@@ -71,6 +82,7 @@ endif()
 function(add_dependencies_and_linkings arg)
   add_dependencies(${arg}
     ${PROJECT_NAME}_gencfg
+    ${catkin_EXPORTED_TARGETS}
   )
 
   if("${ARCH}" STREQUAL x86_64)

@@ -43,6 +43,7 @@
 #include <sensor_msgs/Image.h>
 #include <sensor_msgs/CompressedImage.h>
 #include <sensor_msgs/CameraInfo.h>
+#include <std_msgs/Int8.h>
 #include <std_msgs/UInt8.h>
 #include <cv_bridge/cv_bridge.h>
 #include <thread>
@@ -82,9 +83,9 @@ public:
 
  //Publishers
   std::shared_ptr<image_transport::CameraPublisher> pub_;
-  std::shared_ptr<image_transport::CameraPublisher> debugPub_;
+  std::shared_ptr<image_transport::CameraPublisher> debug_pub_;
   std::shared_ptr<ros::Publisher> pixel_intensity_pub_;
-
+  std::shared_ptr<ros::Publisher> camera_trigger_count_pub_;
 
   //Compressing
   CompressionType compressionType_ = CompressionType::Jpeg;
@@ -95,7 +96,15 @@ public:
   void setDebugPublisher(std::shared_ptr<image_transport::CameraPublisher> pub)
   {
       ROS_WARN("DEBUG PUB ACTIVATED WILL SLOW DOWN PROCESSING BUT PUBLISH RGB IMAGES");
-      if(pub) debugPub_ = pub;
+      if(pub) debug_pub_ = pub;
+  }
+
+  void setCameraTriggerCountPublisher(std::shared_ptr<ros::Publisher> pub)
+  {
+    if (pub)
+    {
+      camera_trigger_count_pub_ = pub;
+    }
   }
 
 
@@ -134,11 +143,14 @@ public:
       stop();
       if(frame_obs_ptr_) frame_obs_ptr_.reset();
       if (vimba_frame_ptr_) vimba_frame_ptr_.reset();
+      if (counter_value_feature_ptr) counter_value_feature_ptr.reset();
+      if (counter_value_feature_ptr) counter_reset_feature_ptr.reset();
       if (vimba_camera_ptr_) vimba_camera_ptr_.reset();
       std::cout<< "cam clean finish" << std::endl;
   }
 
     void compress(const FramePtr& vimba_frame_ptr);
+    void resetCounter() const;
 
     Config config_;
 private:
@@ -149,6 +161,9 @@ private:
   CameraPtr vimba_camera_ptr_;
   // Current frame
   FramePtr vimba_frame_ptr_;
+  // Counter features
+  FeaturePtr counter_value_feature_ptr;
+  FeaturePtr counter_reset_feature_ptr;
   // Mutex
   std::mutex config_mutex_;
 
@@ -190,6 +205,7 @@ private:
   void updateGPIOConfig(Config& config);
   void updateUSBGPIOConfig(Config& config);
   void updateIrisConfig(Config& config);
+  void updateCounterControlConfig(Config& config);
 
 };
 }  // namespace avt_vimba_camera
