@@ -352,9 +352,8 @@ void AvtVimbaCamera::compress(const FramePtr& vimba_frame_ptr)
     }
 }
 
-void AvtVimbaCamera::scannerStateCallback(const std_msgs::Int8::ConstPtr& msg)
+void AvtVimbaCamera::resetCounter() const
 {
-  ROS_INFO("[scannerStateCallback] Camera %d", camId_);
   counter_reset_feature_ptr->RunCommand();
 }
 

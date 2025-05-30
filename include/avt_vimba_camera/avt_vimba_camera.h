@@ -150,7 +150,7 @@ public:
   }
 
     void compress(const FramePtr& vimba_frame_ptr);
-    void scannerStateCallback(const std_msgs::Int8::ConstPtr& msg);
+    void resetCounter() const;
 
     Config config_;
 private:
