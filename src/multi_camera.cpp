@@ -175,6 +175,7 @@ void MultiCamera::scannerStateCallback(const std_msgs::Int8::ConstPtr& msg)
       if(cam)
       {
          cam->resetCounter();
+         cam->resetTimestamp();
       }
   }
 }
