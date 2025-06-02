@@ -144,13 +144,15 @@ public:
       if(frame_obs_ptr_) frame_obs_ptr_.reset();
       if (vimba_frame_ptr_) vimba_frame_ptr_.reset();
       if (counter_value_feature_ptr) counter_value_feature_ptr.reset();
-      if (counter_value_feature_ptr) counter_reset_feature_ptr.reset();
+      if (counter_reset_feature_ptr) counter_reset_feature_ptr.reset();
+      if (timestamp_reset_feature_ptr) timestamp_reset_feature_ptr.reset();
       if (vimba_camera_ptr_) vimba_camera_ptr_.reset();
       std::cout<< "cam clean finish" << std::endl;
   }
 
     void compress(const FramePtr& vimba_frame_ptr);
     void resetCounter() const;
+    void resetTimestamp() const;
 
     Config config_;
 private:
@@ -164,6 +166,8 @@ private:
   // Counter features
   FeaturePtr counter_value_feature_ptr;
   FeaturePtr counter_reset_feature_ptr;
+  // Timestamp features
+  FeaturePtr timestamp_reset_feature_ptr;
   // Mutex
   std::mutex config_mutex_;
 
