@@ -145,8 +145,11 @@ void AvtVimbaCamera::start(const std::string& ip_str, const std::string& guid_st
              new FrameObserver(vimba_camera_ptr_,
                                std::bind(&avt_vimba_camera::AvtVimbaCamera::frameCallback, this, std::placeholders::_1)));       // Modified by pointlaz
 
+      // Retrieve features from camera
       vimba_camera_ptr_->GetFeatureByName("CounterValue", counter_value_feature_ptr);
       vimba_camera_ptr_->GetFeatureByName("CounterReset", counter_reset_feature_ptr);
+      vimba_camera_ptr_->GetFeatureByName("TimestampReset", timestamp_reset_feature_ptr);
+
       connected_ = true;
   }
 }
@@ -355,6 +358,11 @@ void AvtVimbaCamera::compress(const FramePtr& vimba_frame_ptr)
 void AvtVimbaCamera::resetCounter() const
 {
   counter_reset_feature_ptr->RunCommand();
+}
+
+void AvtVimbaCamera::resetTimestamp() const
+{
+  timestamp_reset_feature_ptr->RunCommand();
 }
 
 int AvtVimbaCamera::getSensorWidth()
