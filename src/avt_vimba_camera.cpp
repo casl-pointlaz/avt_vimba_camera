@@ -365,6 +365,13 @@ void AvtVimbaCamera::resetTimestamp() const
   timestamp_reset_feature_ptr->RunCommand();
 }
 
+int AvtVimbaCamera::getCounterValue() const
+{
+  VmbInt64_t counterValue;
+  counter_value_feature_ptr->GetValue(counterValue);
+  return counterValue;
+}
+
 int AvtVimbaCamera::getSensorWidth()
 {
   int sensor_width;
