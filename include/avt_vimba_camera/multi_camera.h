@@ -11,7 +11,8 @@
 #include <sensor_msgs/Image.h>
 #include <sensor_msgs/CompressedImage.h>
 #include <sensor_msgs/CameraInfo.h>
-#include <std_msgs/UInt8.h>
+#include <std_msgs/Bool.h>
+#include <std_msgs/String.h>
 #include <camera_info_manager/camera_info_manager.h>
 #include <image_transport/image_transport.h>
 #include <dynamic_reconfigure/server.h>
@@ -71,7 +72,8 @@ namespace avt_vimba_camera
         std::vector<std::shared_ptr<image_transport::CameraPublisher>> debug_pub_;
         std::vector<std::shared_ptr<ros::Publisher>> pixel_intensity_pub_;
         std::vector<std::shared_ptr<ros::Publisher>> camera_trigger_count_pub_;
-        ros::Subscriber scanner_state_sub_;
+        ros::Subscriber syncMcuSub_;
+        ros::Publisher syncSensorsPub_;
 
         // Dynamic reconfigure
         typedef avt_vimba_camera::AvtVimbaCameraConfig Config;
@@ -82,7 +84,7 @@ namespace avt_vimba_camera
         Config camera_config_;
 
         void compressCallback(const FramePtr& ,const int camId=0);
-        void scannerStateCallback(const std_msgs::Int8::ConstPtr& msg);
+        void syncMcuCallback(const std_msgs::Bool::ConstPtr& msg);
         void configure(Config& newconfig, uint32_t level);
 
     };

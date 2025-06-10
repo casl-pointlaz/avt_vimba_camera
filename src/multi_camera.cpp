@@ -1,9 +1,5 @@
-/// Created by pointlaz
-
 #include <avt_vimba_camera/multi_camera.h>
 #include "avt_vimba_camera/CameraTriggerCount.h"
-
-
 #include "BS_thread_pool.hpp"
 
 #define DEBUG_PRINTS 1
@@ -145,7 +141,8 @@ MultiCamera::MultiCamera(ros::NodeHandle& nh, ros::NodeHandle& nhp)
       cam_[i] = cam;
    }
 
-   scanner_state_sub_ = nh_.subscribe("/scanner_state", 1, &MultiCamera::scannerStateCallback, this);
+   syncMcuSub_ = nh_.subscribe("/sync_mcu", 1, &MultiCamera::syncMcuCallback, this);
+   syncSensorsPub_ = nh_.advertise<std_msgs::String>("/sync_sensors", 1);
 
    ROS_INFO("-------------Reconfig");
    reconfigure_server_.setCallback(
@@ -168,16 +165,27 @@ MultiCamera::~MultiCamera()
    std::cout<< "multi clean finish" << std::endl;
 }
 
-void MultiCamera::scannerStateCallback(const std_msgs::Int8::ConstPtr& msg)
+void MultiCamera::syncMcuCallback(const std_msgs::Bool::ConstPtr& msg)
 {
-  for (const auto &cam : cam_)
-  {
-      if(cam)
+   if(msg->data)
+   {
+      for(const auto &cam : cam_)
       {
-         cam->resetCounter();
-         cam->resetTimestamp();
+         if(cam)
+         {
+            int count = 0;
+            while(count != 0)
+            {
+               cam->resetCounter();
+               cam->resetTimestamp();
+               count = cam->getCounterValue();
+            }
+            std_msgs::String syncSensorsMsg;
+            syncSensorsMsg.data = "camera" + std::to_string(cam->camId_);
+            syncSensorsPub_.publish(syncSensorsMsg);
+         }
       }
-  }
+   }
 }
 
 /** Dynamic reconfigure callback

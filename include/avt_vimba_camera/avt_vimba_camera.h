@@ -153,6 +153,7 @@ public:
     void compress(const FramePtr& vimba_frame_ptr);
     void resetCounter() const;
     void resetTimestamp() const;
+    int getCounterValue() const;
 
     Config config_;
 private:
