@@ -185,6 +185,11 @@ void MultiCamera::syncMcuCallback(const std_msgs::Bool::ConstPtr& msg)
             syncSensorsPub_.publish(syncSensorsMsg);
          }
       }
+      ROS_INFO_STREAM("[multi_camera] All cameras synchronized");
+   }
+   else
+   {
+      ROS_INFO_STREAM("[multi_camera] MCU not syncronized, so the cameras will be syncronized");
    }
 }
 
