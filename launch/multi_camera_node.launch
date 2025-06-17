@@ -60,7 +60,7 @@
   <arg name="trigger_activation"        default="RisingEdge"/>
   <arg name="trigger_delay"             default="0.0"/>
   <!-- Exposure -->
-  <arg name="exposure"                  default="10000"/>
+  <arg name="exposure"                  default="5000"/>
   <arg name="exposure_auto"             default="Off"/>
   <arg name="exposure_mode"             default="Timed"/>
   <arg name="exposure_auto_alg"         default="FitRange"/>
@@ -71,7 +71,7 @@
   <arg name="exposure_auto_rate"        default="10000"/>
   <arg name="exposure_auto_target"      default="10000"/>
   <!-- Gain -->
-  <arg name="gain"                      default="12"/>
+  <arg name="gain"                      default="18"/>
   <arg name="gain_auto"                 default="Off"/>
   <arg name="gain_auto_adjust_tol"      default="5"/>
   <arg name="gain_auto_max"             default="32"/>
