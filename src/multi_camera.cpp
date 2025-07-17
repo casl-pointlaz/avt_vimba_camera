@@ -19,28 +19,41 @@ MultiCamera::MultiCamera(ros::NodeHandle& nh, ros::NodeHandle& nhp)
    api_ = std::make_shared<AvtVimbaApi>(pool);
    api_->start();
 
-   std::string compressionType;
-   nhp_.param<std::string>("compression_type", compressionType, "jpeg");
-   if (compressionType == "jpeg")
-   {
-      compressionType_ = CompressionType::Jpeg;
-   }
-   if (compressionType == "jpegTurbo")
-   {
-      api_->setJpegTurboHandlers();
-      compressionType_ = CompressionType::JpegTurbo;
-   }
-   else if (compressionType == "jetraw")
-   {
-      compressionType_ = CompressionType::Jetraw;
-   }
-   else if (compressionType == "none")
+   bool enableCompression;
+   nhp_.param<bool>("enable_compression", enableCompression, true);
+
+   if (!enableCompression)
    {
       compressionType_ = CompressionType::None;
    }
    else
    {
-      ROS_WARN_STREAM("compression_type = '" << compressionType << "' bad value. Must be 'jpeg', 'jpegTurbo', 'jetraw' or 'none'. Set to default value 'jpeg'");
+      std::string compressionType;
+      nhp_.param<std::string>("compression_type", compressionType, "jpeg");
+
+      if (compressionType == "jpeg")
+      {
+         compressionType_ = CompressionType::Jpeg;
+      }
+      else if (compressionType == "jpegTurbo")
+      {
+         api_->setJpegTurboHandlers();
+         compressionType_ = CompressionType::JpegTurbo;
+      }
+      else if (compressionType == "jetraw")
+      {
+         compressionType_ = CompressionType::Jetraw;
+      }
+      else if (compressionType == "none")
+      {
+         compressionType_ = CompressionType::None;
+      }
+      else
+      {
+         ROS_WARN_STREAM("compression_type = '" << compressionType
+                          << "' bad value. Must be 'jpeg', 'jpegTurbo', 'jetraw' or 'none'. Set to default value 'jpeg'");
+         compressionType_ = CompressionType::Jpeg;
+      }
    }
 
    std::string topicName = "image_raw_";

@@ -6,8 +6,10 @@
   <!-- multi_camera_node parameters, these parameters define the cameras parameters -->
   <!-- Change these parameters using the quantity and ID of your cameras -->
 
-  <!-- Update compression_type parameter -->
+  <!-- Update compression parameters -->
   <arg name="compression_type"               default="jpegTurbo"/>
+  <arg name="enable_compression"               default="true"/>
+
 
   <!-- Cameras IDs config file -->
   <arg name="cameras_ids_config_file"   default="$(find avt_vimba_camera)/config/cameras_ids.yaml" />
@@ -131,6 +133,7 @@
   <!-- Run the multi_camera_node -->
   <node name="multi_camera" pkg="avt_vimba_camera" type="multi_camera_node" output="screen">
     <param name="compression_type"                    value="$(arg compression_type)"/>
+    <param name="enable_compression"                  value="$(arg enable_compression)"/>
 
     <!-- Cameras IDs config file -->
     <rosparam command="load"                file="$(arg cameras_ids_config_file)" />
