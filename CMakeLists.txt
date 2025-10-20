@@ -49,9 +49,8 @@ catkin_package(
 ###########
 ## Build ##
 ###########
-message(STATUS "=====================${libjpeg-turbo}")
 
-        include_directories(
+include_directories(
   ${THREADPOOL_INCLUDE_DIR}
   ${catkin_INCLUDE_DIRS}
   include
@@ -92,8 +91,10 @@ function(add_dependencies_and_linkings arg)
   elseif("${ARCH}" STREQUAL armv8)
     target_link_libraries(${arg}
       ${catkin_LIBRARIES}
+      libjpeg-turbo::turbojpeg
       ${CMAKE_CURRENT_SOURCE_DIR}/lib/arm_64bit/libVimbaC.so
       ${CMAKE_CURRENT_SOURCE_DIR}/lib/arm_64bit/libVimbaCPP.so
+      ${CMAKE_CURRENT_SOURCE_DIR}/lib/arm_64bit/libVimbaImageTransform.so
     )
   else()
     message(FATAL_ERROR "[libvimba]: Architecture ${ARCH} not suported. Exiting...")
