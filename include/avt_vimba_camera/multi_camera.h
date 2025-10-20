@@ -18,9 +18,6 @@
 #include <cv_bridge/cv_bridge.h>
 #include <opencv2/opencv.hpp>
 
-#include <dpcore/dpcore.h>
-#include <jetraw.h>
-
 #include <string>
 
 namespace avt_vimba_camera

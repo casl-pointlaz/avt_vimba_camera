@@ -45,7 +45,6 @@
 #include <string>
 #include <map>
 
-#include <jetraw.h>
 #include <cv_bridge/cv_bridge.h>
 #include <thread>
 #include <opencv2/opencv.hpp>
@@ -62,7 +61,6 @@ enum class CompressionType
 {
    Jpeg,
    JpegTurbo,
-   Jetraw,
    None
 };
 
@@ -338,32 +336,7 @@ public:
 
       ros::Time start_time = ros::Time::now();
 
-      if (compressionType_ == CompressionType::Jetraw)
-      {
-         VmbUchar_t *buffer_ptr_in;
-         err = vimba_frame_ptr->GetImage(buffer_ptr_in);
-         if (VmbErrorSuccess != err)
-         {
-            ROS_ERROR_STREAM("[" << ros::this_node::getName() << "]: Could not GetImage. "
-                                 << "\n Error: " << errorCodeToMessage(err));
-         }
-         int32_t dstLen;
-         res = jetrawCompress::encodeMsg(buffer_ptr_in,height, width, image, dstLen);
-         if (!res)
-         {
-            ROS_ERROR("JETRAW-------------ENCODING FAILED");
-         }
-
-         if (debugImage_)
-         {
-            bool decodeDebug = jetrawCompress::decodeMsg(image,debugImage);
-            if (!decodeDebug)
-            {
-               ROS_ERROR("JETRAW-------------DEBUG DECODING FAILED");
-            }
-         }
-      }
-      else if (compressionType_ == CompressionType::Jpeg)
+      if (compressionType_ == CompressionType::Jpeg)
       {
          std::vector<VmbUchar_t> TransformedData;
          try

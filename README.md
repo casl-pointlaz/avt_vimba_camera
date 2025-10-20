@@ -9,31 +9,6 @@ ___
 ## This is the Pointlaz modified version
  Last modification 2023-04-07 by CASL and Antoine Gruet.
 
-## Jetraw implementation
-You need to have a license activated and the parameters to the right place
-
-First create a license.txt in ~/.config/jetraw/ create a jetraw directory if there is none
-if there is another file that looks like this:
-
-01CUZ82QvWVr2DYaeuWpvpyexTp76dEkMErung78g4.lic
-
-make sure to delete it, it might be an old license activation
-
-Then 
-```sh
-mkdir ~/.config/dpcore
-cp ./test/002kk.dat ~/.config/dpcore 
-```
-
-### Activate the license
-You'll need to activate the licence and you'll require to be connected to internet. 
-```
-./JetrawWithDPCore-22.02.16.1/bin/jetraw compress -d ./test ./raw_5.tiff 
-```
-Then there should be a new .lic file in the ~/.config/jetraw/
-
-Last modification 2023-04-07 by CASL and Antoine Gruet.
-
 ### How to update this version
 Since the PointLaz modifications are contained on a branch, it is possible to isolate the modifications from the update.
 - While working on this fork, start by checking out on the master branch
@@ -61,7 +36,7 @@ on another terminal load params from yaml file
 rosparam load /home/alex/third_party/Scanner/RosScan/Projects/avt_vimba_camera/launch/no_trigger_params.yaml
 ```
 
-in clion run the node in debug mode 
+in clion run the node in debug mode
 
 CTRL+ALT+5 and link the node ( Main | Run | Attach to process)
 
@@ -92,7 +67,7 @@ To update your cameras' firmwares:
 9. **WARNING! Do not unplug any cameras during the update process!**
 10. Once it is finished, click **Close**, then click **Update camera list**. You should see the new firmware under the **Current firmware** of your cameras.
 
-### Launch files configuration 
+### Launch files configuration
 Even if multiple launch exist in */RosScan/Projects/avt_vimba_camera/launch*. Only 2 are useful for us:
 - **multi_camera_node.launch**: To operate multiple Vimba cameras using ROS.
 - **mono_camera.launch**: To operate one Vimba camera using ROS.
@@ -105,13 +80,13 @@ You will have to configure the IDs of your cameras in the **cameras_ids.yaml** c
 ```
 camera_qty: 0
 ```
-4. Open the **Vimba Viewer** by double-clicking the link on your desktop. 
-5. You should see all your cameras under **Detected Cameras**. 
+4. Open the **Vimba Viewer** by double-clicking the link on your desktop.
+5. You should see all your cameras under **Detected Cameras**.
 6. Click once on your first camera. Wait for a new window to open.
 7. Click on the **play** button at the top left of the window. The image capture should start. You can read the FPS under the image. If the image capture starts, go to step 10 directly. If not, follow the next steps.
-8. If the image stays black, and the FPS counter stays to zero, it can be because your camera is in triggering mode (if you already used the ROS node with it, it will be the case). 
-9. You will need to go back to continuous mode. Stop the acquisition with the **play** button. In the params to the right, go to **Trigger IO** and under **Trigger Input/Trigger**, change **Mode** to **Off**. Press **play** again. The acquisition should start. 
-10. Observe the image to find which camera of the Scanner you just opened. You can position an object in front of each camera until it appears in the center of the image. 
+8. If the image stays black, and the FPS counter stays to zero, it can be because your camera is in triggering mode (if you already used the ROS node with it, it will be the case).
+9. You will need to go back to continuous mode. Stop the acquisition with the **play** button. In the params to the right, go to **Trigger IO** and under **Trigger Input/Trigger**, change **Mode** to **Off**. Press **play** again. The acquisition should start.
+10. Observe the image to find which camera of the Scanner you just opened. You can position an object in front of each camera until it appears in the center of the image.
 11. Once you found the right camera, take note of the number written on the Scanner, next to the lentil of the camera. The **X** value of the **guid_X** of the camera will be this number, minus 1.
 12. In the Viewer, go to the black window at the bottom, and copy the **ID** of the camera (it must look like DEV_XXXXXXXXXXXX).
 13. Paste this **ID** to replace "DEV_XXXXXXXXXXXX" in **cameras_ids.yaml**, for the right **guid_X**:
@@ -123,7 +98,7 @@ guid_0: "DEV_XXXXXXXXXXXX"
 
 The **cameras_ids.yaml** will be called in **multi_camera_node.launch** using the lines:
 ```
-<arg name="cameras_ids_config_file"   default="$(find avt_vimba_camera)/config/cameras_ids.yaml" />    
+<arg name="cameras_ids_config_file"   default="$(find avt_vimba_camera)/config/cameras_ids.yaml" />
     ...
     <rosparam command="load" file="$(arg cameras_ids_config_file)" />
 ```
@@ -131,15 +106,15 @@ The **cameras_ids.yaml** will be called in **multi_camera_node.launch** using th
 *NOTE: If you have less than 7 cameras, do not bother with the arguments you don't need, the node will only use the one needed, depending on the value of **camera_qty**.*
 
 #### Cameras ID configuration in **mono_camera.launch**
-To configure the **mono_camera.launch** to work with your camera, follow the same steps as for the **multi_camera_node.launch**.  
-You just do not have any *camera_qty* to set.  
+To configure the **mono_camera.launch** to work with your camera, follow the same steps as for the **multi_camera_node.launch**.
+You just do not have any *camera_qty* to set.
 The next line is an example of where to set your camera ID (line 9):
 ```
-    <arg name="guid"                    default="DEV_XXXXXXXXXXXX"  doc="The GUID for the camera to connect to"/> 
+    <arg name="guid"                    default="DEV_XXXXXXXXXXXX"  doc="The GUID for the camera to connect to"/>
 ```
 
 #### Other important parameters in **multi_camera_node.launch** and **mono_camera.launch**
-Several other parameters than the *guid* are important.  
+Several other parameters than the *guid* are important.
 You may not need to tune them as they are already set to work with our Scanner configuration, but in case, here is the list:
 - **trigger_source**: The GPIO Line you are using to trigger de camera.
 - **trigger_mode**: *True* if you want your camera to capture image on trigger signal, *False* otherwise.
@@ -184,10 +159,10 @@ On Linux, you will need to increase the MTU (Maximum Transmission Unit) on the n
 You can check what your current mtu setting is by running the following command:
 ```
 ip a | grep mtu
-``` 
+```
 
 According to AVT documentation, increase the mtu to `9014`.
-If you use Network Manager, this can be done by opening the network interface settings and editing the "MTU" box under the "Identity" tab. 
+If you use Network Manager, this can be done by opening the network interface settings and editing the "MTU" box under the "Identity" tab.
 
 See the "Optimize system performance" section of your camera's technical manual for full details.
 For example, the Mako camera technical manual is available [here](https://cdn.alliedvision.com/fileadmin/content/documents/products/cameras/Mako/techman/Mako_TechMan_en.pdf).
@@ -216,7 +191,7 @@ net.core.rmem_max=26214400
 
 ### Camera Settings in General
 
-If you are having difficulty getting the camera to do what you want using the ROS driver, it is suggested to first use Vimba Viewer to play around with settings that work. 
+If you are having difficulty getting the camera to do what you want using the ROS driver, it is suggested to first use Vimba Viewer to play around with settings that work.
 The Vimba Viewer GUI will help you determine what settings are available to your camera model and help you tune them easier.
 Once you have settings that you are happy with, save them into your own rosparam file or launch file, and the driver will use those settings every time it launches.
 
@@ -236,7 +211,7 @@ See the launch file (launch/mono_camera.launch) for documentation regarding the 
 
 ### trigger_node
 
-The trigger_node is a standalone node for sending out ethernet-based action commands to AVT cameras. 
+The trigger_node is a standalone node for sending out ethernet-based action commands to AVT cameras.
 Action commands are useful for triggering frame captures over ethernet.
 See AVT's [application note](https://cdn.alliedvision.com/fileadmin/content/documents/products/cameras/various/appnote/GigE/Action-Commands_Appnote.pdf) for more details.
 Note that cameras must be configured to receive the action commands in addition to running the trigger_node.
@@ -252,7 +227,7 @@ See the links below for more details on PTP sync.
 ## Useful Technical References and Application Notes
 
 - [GigE Features Reference](https://cdn.alliedvision.com/fileadmin/content/documents/products/cameras/various/features/GigE_Features_Reference.pdf) (To better understand what features your camera supports and how to tune them)
-- [Trigger over Ethernet - Action Commands](https://cdn.alliedvision.com/fileadmin/content/documents/products/cameras/various/appnote/GigE/Action-Commands_Appnote.pdf) 
+- [Trigger over Ethernet - Action Commands](https://cdn.alliedvision.com/fileadmin/content/documents/products/cameras/various/appnote/GigE/Action-Commands_Appnote.pdf)
 - [PTP Clock Sync](https://cdn.alliedvision.com/fileadmin/content/documents/products/cameras/various/appnote/GigE/PTP_IEEE1588_with_Prosilica_GT_GC_Manta.pdf) (Highly recommended if you care about exact image acquisition time)
-- [Image Timestamp on Allied Vision GigE Cameras](https://cdn.alliedvision.com/fileadmin/content/documents/products/cameras/various/appnote/GigE/Image_Timestamp.pdf) 
+- [Image Timestamp on Allied Vision GigE Cameras](https://cdn.alliedvision.com/fileadmin/content/documents/products/cameras/various/appnote/GigE/Image_Timestamp.pdf)
 - [Decimation](https://cdn.alliedvision.com/fileadmin/content/documents/products/cameras/various/appnote/various/Decimation.pdf) (Binning is similar)
