@@ -40,10 +40,6 @@ MultiCamera::MultiCamera(ros::NodeHandle& nh, ros::NodeHandle& nhp)
          api_->setJpegTurboHandlers();
          compressionType_ = CompressionType::JpegTurbo;
       }
-      else if (compressionType == "jetraw")
-      {
-         compressionType_ = CompressionType::Jetraw;
-      }
       else if (compressionType == "none")
       {
          compressionType_ = CompressionType::None;
@@ -51,7 +47,7 @@ MultiCamera::MultiCamera(ros::NodeHandle& nh, ros::NodeHandle& nhp)
       else
       {
          ROS_WARN_STREAM("compression_type = '" << compressionType
-                          << "' bad value. Must be 'jpeg', 'jpegTurbo', 'jetraw' or 'none'. Set to default value 'jpeg'");
+                          << "' bad value. Must be 'jpeg', 'jpegTurbo' or 'none'. Set to default value 'jpeg'");
          compressionType_ = CompressionType::Jpeg;
       }
    }
@@ -92,20 +88,6 @@ MultiCamera::MultiCamera(ros::NodeHandle& nh, ros::NodeHandle& nhp)
       pixel_intensity_pub_.resize(camQty_);
    }
 
-   if (compressionType_ == CompressionType::Jetraw)
-   {
-      auto res = dpcore_init();
-      ROS_INFO_STREAM("JETRAW------------ INIT STATUS " << std::to_string(res));
-      if (res <= 1)
-      {
-         ROS_INFO("JETRAW------------ACTIVATED");
-      }
-      else
-      {
-         ROS_WARN("JETRAW------------INIT FAILED FALL BACK TO JPG");
-         compressionType_ = CompressionType::Jpeg;
-      }
-   }
    if (compressionType_ == CompressionType::Jpeg || compressionType_ == CompressionType::JpegTurbo) {
       api_->qualityJPG_ = qualityJPG_;
    }

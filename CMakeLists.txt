@@ -21,15 +21,6 @@ find_package(libjpeg-turbo REQUIRED)
 
 set(THREADPOOL_INCLUDE_DIR " ${CMAKE_CURRENT_SOURCE_DIR}/include/thread_pool/include")
 
-set(JETRAW_INCLUDE_DIR " ${CMAKE_CURRENT_SOURCE_DIR}/JetrawWithDPCore-22.02.16.1/include")
-
-set (JETRAW_LIBS
-        ${CMAKE_CURRENT_SOURCE_DIR}/JetrawWithDPCore-22.02.16.1/lib/libcrypto.so.1.1
-        ${CMAKE_CURRENT_SOURCE_DIR}/JetrawWithDPCore-22.02.16.1/lib/libdpcore.so
-        ${CMAKE_CURRENT_SOURCE_DIR}/JetrawWithDPCore-22.02.16.1/lib/libjetraw.so
-        ${CMAKE_CURRENT_SOURCE_DIR}/JetrawWithDPCore-22.02.16.1/lib/libjetraw_tiff.so
-        ${CMAKE_CURRENT_SOURCE_DIR}/JetrawWithDPCore-22.02.16.1/lib/libssl.so.1.1)
-
 #Get architecture
 set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 include(TargetArchitecture)
@@ -58,12 +49,10 @@ catkin_package(
 ###########
 ## Build ##
 ###########
-message(STATUS "=====================${libjpeg-turbo}")
 
-        include_directories(
+include_directories(
   ${THREADPOOL_INCLUDE_DIR}
   ${catkin_INCLUDE_DIRS}
-  ${JETRAW_INCLUDE_DIR}
   include
 )
 
@@ -88,7 +77,6 @@ function(add_dependencies_and_linkings arg)
   if("${ARCH}" STREQUAL x86_64)
     target_link_libraries(${arg}
       ${catkin_LIBRARIES}
-      ${JETRAW_LIBS}
       libjpeg-turbo::turbojpeg
       ${CMAKE_CURRENT_SOURCE_DIR}/lib/64bit/libVimbaC.so
       ${CMAKE_CURRENT_SOURCE_DIR}/lib/64bit/libVimbaCPP.so
@@ -103,8 +91,10 @@ function(add_dependencies_and_linkings arg)
   elseif("${ARCH}" STREQUAL armv8)
     target_link_libraries(${arg}
       ${catkin_LIBRARIES}
+      libjpeg-turbo::turbojpeg
       ${CMAKE_CURRENT_SOURCE_DIR}/lib/arm_64bit/libVimbaC.so
       ${CMAKE_CURRENT_SOURCE_DIR}/lib/arm_64bit/libVimbaCPP.so
+      ${CMAKE_CURRENT_SOURCE_DIR}/lib/arm_64bit/libVimbaImageTransform.so
     )
   else()
     message(FATAL_ERROR "[libvimba]: Architecture ${ARCH} not suported. Exiting...")
@@ -130,7 +120,6 @@ add_executable(multi_camera_node
         src/multi_camera.cpp
         src/avt_vimba_camera.cpp
         src/frame_observer.cpp
-        src/jetraw.cpp
         src/jpegTurbo.cpp
         )
 add_dependencies_and_linkings(multi_camera_node)
